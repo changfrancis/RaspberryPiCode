@@ -104,4 +104,4 @@ if __name__ == "__main__":
 		adc.address
 		Read_Temp_Humid() 
 		print(adc.address)
-		time.sleep(2)
+		time.sleep(3)
