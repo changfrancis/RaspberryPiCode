@@ -1,3 +1,4 @@
+from Tkinter import *
 import time, sys, threading, signal, atexit
 import numpy as np
 from time import sleep
@@ -96,6 +97,29 @@ def printit():
 		print "hello, world"
 
 if __name__ == "__main__": 
+	root = Tk()
+	topFrame = Frame(root)
+	topFrame.pack(side=TOP)
+	bottomFrame = Frame(root)
+	bottomFrame.pack(side=BOTTOM)
+	
+	button1 = Button(topFrame, text="Start", bg="white", fg="green")
+	button2 = Button(topFrame, text="End", bg="white", fg="blue")
+	button3 = Button(topFrame, text="Exit", bg="white", fg="red")
+	button4 = Button(bottomFrame, text="Bottom", bg="black", fg="yellow")
+	button5 = Button(bottomFrame, text="Fill", bg="black", fg="yellow")
+	
+	button1.pack(side=LEFT)
+	button2.pack(side=LEFT)
+	button3.pack(side=LEFT)
+	button4.pack(side=BOTTOM, fill=X)
+	button5.pack(side=BOTTOM, fill=Y)
+	
+	theLabel = Label(topFrame, text="hi hello world")
+	theLabel.pack(side=TOP)
+	
+	root.mainloop()
+	
 	ht_sensor = grove_i2c_temp_hum_mini.th02()
 	adc = ADC()
 	#test_pid(1.2, 1, 0.001, L=50)
