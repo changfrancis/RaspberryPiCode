@@ -1,8 +1,9 @@
 # cd /home/pi/Desktop/MyCode
 # git status
 # git commit -a 
-# in something key-in comments
-# git push #key-in user and password
+# hit enter, key-in some comments
+# git push 
+# hit enter, key-in user and password
 from Tkinter import *
 import time, sys, thread, signal, atexit
 import numpy as np
