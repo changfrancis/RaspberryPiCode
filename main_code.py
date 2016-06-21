@@ -1,11 +1,17 @@
+# cd /home/pi/Desktop/MyCode
+# git status
+# git commit -a 
+# in something key-in comments
+# git push #key-in user and password
 from Tkinter import *
-import time, sys, threading, signal, atexit
+import time, sys, thread, signal, atexit
 import numpy as np
 from time import sleep
 from scipy.interpolate import spline
 import matplotlib.pyplot as plt
-import grove_i2c_temp_hum_mini
 import PID
+import screen
+import sensors
 
 class ADC:
 	address = None
@@ -97,6 +103,19 @@ def printit():
 		print "hello, world"
 
 if __name__ == "__main__": 
+	try:
+		thread.start_new_thread(screen.display, ("ScreenThread",))
+		thread.start_new_thread(sensors.read_ambience_sensor, ("AmbienceThread",))
+		sensors.ambience_sensor_enabled = 1 #enable reading after thread start
+		time.sleep(1)
+		print("Boot-up ... Successful\n")
+		while True:
+			print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
+			print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
+			time.sleep(5)
+	except Exception, e:
+		print(str(e))
+'''
 	root = Tk()
 	topFrame = Frame(root)
 	topFrame.pack(side=TOP)
@@ -105,15 +124,21 @@ if __name__ == "__main__":
 	
 	button1 = Button(topFrame, text="Start", bg="white", fg="green")
 	button2 = Button(topFrame, text="End", bg="white", fg="blue")
-	button3 = Button(topFrame, text="Exit", bg="white", fg="red")
+	button3 = Button(topFrame, text="Exit", bg="white", fg="red", command=exitProgram)
 	button4 = Button(bottomFrame, text="Bottom", bg="black", fg="yellow")
 	button5 = Button(bottomFrame, text="Fill", bg="black", fg="yellow")
+	entry1 = Entry(bottomFrame)
 	
-	button1.pack(side=LEFT)
-	button2.pack(side=LEFT)
+	c = Checkbutton(bottomFrame, text="checkbox")
+	
+	button1.pack(side=LEFT, fill=X)
+	button2.pack(side=LEFT, fill=Y)
 	button3.pack(side=LEFT)
-	button4.pack(side=BOTTOM, fill=X)
-	button5.pack(side=BOTTOM, fill=Y)
+	
+	button4.grid(row=0,column=0, sticky="N")
+	button5.grid(row=0,column=1, sticky="E")
+	entry1.grid(row=1,column=0, sticky="S")
+	c.grid(columnspan=2, sticky="S")
 	
 	theLabel = Label(topFrame, text="hi hello world")
 	theLabel.pack(side=TOP)
@@ -129,3 +154,4 @@ if __name__ == "__main__":
 		Read_Temp_Humid() 
 		print(adc.address)
 		time.sleep(3)
+'''
