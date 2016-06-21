@@ -1,9 +1,13 @@
 # cd /home/pi/Desktop/MyCode
 # git status
+# use "git add xxx.py" ,to add new files
 # git commit -a 
 # hit enter, key-in some comments
 # git push 
 # hit enter, key-in user and password
+# changfrancis@hotmail.com
+# 8524879j
+
 from Tkinter import *
 import time, sys, thread, signal, atexit
 import numpy as np
