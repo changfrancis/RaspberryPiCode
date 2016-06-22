@@ -5,8 +5,8 @@
 # hit enter, key-in some comments
 # git push 
 # hit enter, key-in user and password
-# changfrancis@hotmail.com
-# 8524879j
+# user: changfrancis@hotmail.com
+# pw: 8524879j
 
 from Tkinter import *
 import time, sys, thread, signal, atexit
@@ -109,17 +109,21 @@ def printit():
 
 if __name__ == "__main__": 
 	try:
-		thread.start_new_thread(screen.display, ("ScreenThread",))
-		thread.start_new_thread(sensors.read_ambience_sensor, ("AmbienceThread",))
-		sensors.ambience_sensor_enabled = 1 #enable reading after thread start
-		time.sleep(1)
-		print("Boot-up ... Successful\n")
-		while True:
-			print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
-			print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
-			time.sleep(5)
+		sensors.ambience_sensor_enabled = 0 #enable temp reading after thread start
+		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
+		#thread.start_new_thread(screen.display, ("ScreenThread",))
+		#time.sleep(0.2)
+		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",))
+		time.sleep(0.2)
 	except Exception, e:
 		print(str(e))
+		
+	print("Boot-up ... Successful\n")
+	while True:
+		print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
+		print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
+		print("ADC1 Temp = %.1f" %sensors.adc1_temp + "C")
+		time.sleep(0.5)
 '''
 	root = Tk()
 	topFrame = Frame(root)
