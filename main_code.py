@@ -20,11 +20,13 @@ import screen
 import sensors
 import grovepi
 import aircon_output
+import coldblock_output
 
 # Exit handlers
 def exitProgram():
 	print("\n\n\nExiting...\n")
 	grovepi.analogWrite(peltierfanpin1,0)
+	grovepi.analogWrite(peltierfanpin2,0)
 	peltier1.start(0)
 	peltier2.start(0)
 	heater.start(0)
@@ -44,8 +46,8 @@ if __name__ == "__main__":
 		peltierpin1 = 16
 		peltierpin2 = 20
 		heaterpin = 21
-		peltierfanpin1 = 3
-		peltierfanpin2 = 5
+		peltierfanpin1 = 5
+		peltierfanpin2 = 3
 
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
@@ -59,8 +61,10 @@ if __name__ == "__main__":
 		heater = GPIO.PWM(heaterpin, 50)
 		heater.start(0)
 		grovepi.pinMode(peltierfanpin1,"OUTPUT")
-		time.sleep(1)
-		grovepi.analogWrite(peltierfanpin1,255) #0-255
+		grovepi.pinMode(peltierfanpin2,"OUTPUT")
+		time.sleep(0.5)
+		grovepi.analogWrite(peltierfanpin1,250) #coldblock, 0-255
+		grovepi.analogWrite(peltierfanpin2,0) #aircon, 0-255
 		time.sleep(0.2)
 		
 		
@@ -82,11 +86,15 @@ if __name__ == "__main__":
 	aircon.daemon = True
 	aircon.start()
 	
+	coldblock = threading.Thread(target=coldblock_output.run)
+	coldblock.daemon = True
+	coldblock.start()
+	
 	while True:
 		try:
 			#print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
 			#print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
-			print("ADC1 Temp = %.1f" %sensors.adc1_temp_cur + "C")
+			#print("ADC1 Temp = %.1f" %sensors.adc1_temp_cur + "C")
 			#print("ADC2 Temp = %.1f" %sensors.adc2_temp_cur + "C")
 			#print("ADC3 Temp = %.1f" %sensors.adc3_temp_cur + "C")
 			time.sleep(0.75)
