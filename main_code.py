@@ -9,95 +9,27 @@
 # pw: 8524879j
 
 from Tkinter import *
-import time, sys, thread, signal, atexit
+import datetime, time, sys, thread, threading, signal, atexit
 import numpy as np
 from time import sleep
 from scipy.interpolate import spline
 import matplotlib.pyplot as plt
+import RPi.GPIO as GPIO
 import PID
 import screen
 import sensors
-
-class ADC:
-	address = None
-	
-	REG_ADDR_RESULT = 0x00
-	REG_ADDR_ALERT  = 0x01
-	REG_ADDR_CONFIG = 0x02
-	REG_ADDR_LIMITL = 0x03
-	REG_ADDR_LIMITH = 0x04
-	REG_ADDR_HYST   = 0x05
-	REG_ADDR_CONVL  = 0x06
-	REG_ADDR_CONVH  = 0x07
-
-	def __init__(self,address=0x55):
-		self.address=address
-		#bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,0x20)
-
-	def adc_read(self):
-		#data=bus.read_i2c_block_data(self.address, self.REG_ADDR_RESULT, 2)
-		raw_val=(data[0]&0x0f)<<8 | data[1]
-		return raw_val
-
-def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
-    """Self-test PID class
-    .. note::
-        ...
-        for i in range(1, END):
-            pid.update(feedback)
-            output = pid.output
-            if pid.SetPoint > 0:
-                feedback += (output - (1/i))
-            if i>9:
-                pid.SetPoint = 1
-            time.sleep(0.02)
-        ---
-    """
-    pid = PID.PID(P, I, D)
-
-    pid.SetPoint=0.0
-    pid.setSampleTime(0.01)
-
-    END = L
-    feedback = 0
-
-    feedback_list = []
-    time_list = []
-    setpoint_list = []
-
-    for i in range(1, END):
-        pid.update(feedback)
-        output = pid.output
-        if pid.SetPoint > 0:
-            feedback += (output - (1/i))
-        if i>9:
-            pid.SetPoint = 1
-        time.sleep(0.02)
-
-        feedback_list.append(feedback)
-        setpoint_list.append(pid.SetPoint)
-        time_list.append(i)
-
-    time_sm = np.array(time_list)
-    time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
-    feedback_smooth = spline(time_list, feedback_list, time_smooth)
-
-    plt.plot(time_smooth, feedback_smooth)
-    plt.plot(time_list, setpoint_list)
-    plt.xlim((0, L))
-    plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
-    plt.xlabel('time (s)')
-    plt.ylabel('PID (PV)')
-    plt.title('TEST PID')
-
-    plt.ylim((1-0.5, 1+0.5))
-
-    plt.grid(True)
-    plt.show()
+import grovepi
+import aircon_output
 
 # Exit handlers
 def exitProgram():
-	print "Exiting"
+	print("\n\n\nExiting...\n")
+	grovepi.analogWrite(peltierfanpin1,0)
+	peltier1.start(0)
+	peltier2.start(0)
+	heater.start(0)
+	GPIO.cleanup()
+	time.sleep(1)
 	sys.exit(0)
 	
 def Read_Temp_Humid():
@@ -109,21 +41,63 @@ def printit():
 
 if __name__ == "__main__": 
 	try:
+		peltierpin1 = 16
+		peltierpin2 = 20
+		heaterpin = 21
+		peltierfanpin1 = 3
+		peltierfanpin2 = 5
+
+		GPIO.setmode(GPIO.BCM)
+		GPIO.setwarnings(False)
+		GPIO.setup(peltierpin1, GPIO.OUT)
+		GPIO.setup(peltierpin2, GPIO.OUT)
+		GPIO.setup(heaterpin, GPIO.OUT)
+		peltier1 = GPIO.PWM(peltierpin1, 50)
+		peltier1.start(0)
+		peltier2 = GPIO.PWM(peltierpin2, 50)
+		peltier2.start(0)
+		heater = GPIO.PWM(heaterpin, 50)
+		heater.start(0)
+		grovepi.pinMode(peltierfanpin1,"OUTPUT")
+		time.sleep(1)
+		grovepi.analogWrite(peltierfanpin1,255) #0-255
+		time.sleep(0.2)
+		
+		
 		sensors.ambience_sensor_enabled = 0 #enable temp reading after thread start
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
+		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
+		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
 		#time.sleep(0.2)
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",))
 		time.sleep(0.2)
+		print("Boot-up ... Successful\n")
 	except Exception, e:
 		print(str(e))
-		
-	print("Boot-up ... Successful\n")
+		print("Boot-up ... Failed\n")
+		GPIO.cleanup()
+
+	aircon = threading.Thread(target=aircon_output.run)
+	aircon.daemon = True
+	aircon.start()
+	
 	while True:
-		print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
-		print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
-		print("ADC1 Temp = %.1f" %sensors.adc1_temp + "C")
-		time.sleep(0.5)
+		try:
+			#print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
+			#print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
+			print("ADC1 Temp = %.1f" %sensors.adc1_temp_cur + "C")
+			#print("ADC2 Temp = %.1f" %sensors.adc2_temp_cur + "C")
+			#print("ADC3 Temp = %.1f" %sensors.adc3_temp_cur + "C")
+			time.sleep(0.75)
+		except KeyboardInterrupt:
+			print("\nKeyboard Shutdown\n")
+			exitProgram()
+			break
+		except IOError:
+			print("Error")
+			exitProgram()
+	GPIO.cleanup()
 '''
 	root = Tk()
 	topFrame = Frame(root)

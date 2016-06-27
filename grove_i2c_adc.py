@@ -44,9 +44,10 @@ if rev == 2 or rev == 3:
 else:
     bus = smbus.SMBus(0)
 
-class ADC:
-	address = None
+class ADC1:
+	address =0x50
 	
+	MY_CONFIG = 0x20
 	REG_ADDR_RESULT = 0x00
 	REG_ADDR_ALERT  = 0x01
 	REG_ADDR_CONFIG = 0x02
@@ -56,11 +57,10 @@ class ADC:
 	REG_ADDR_CONVL  = 0x06
 	REG_ADDR_CONVH  = 0x07
 
-	def __init__(self,address=0x50):
+	def __init__(self):
 		try:
-			self.address=address
-			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,0x00)
-			#time.sleep(0.1)
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
+			time.sleep(0.1)
 		except Exception, e:
 			print(str(e))
 
@@ -72,6 +72,67 @@ class ADC:
 			return raw_val
 		except Exception, e:
 			print(str(e))
-			self.address=0x50
-			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,0x00)
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
+			return -1.0
+
+class ADC2:
+	address =0x51
+	
+	MY_CONFIG = 0x20
+	REG_ADDR_RESULT = 0x00
+	REG_ADDR_ALERT  = 0x01
+	REG_ADDR_CONFIG = 0x02
+	REG_ADDR_LIMITL = 0x03
+	REG_ADDR_LIMITH = 0x04
+	REG_ADDR_HYST   = 0x05
+	REG_ADDR_CONVL  = 0x06
+	REG_ADDR_CONVH  = 0x07
+
+	def __init__(self):
+		try:
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
+			time.sleep(0.1)
+		except Exception, e:
+			print(str(e))
+
+	def adc_read(self):
+		try:
+			data=bus.read_i2c_block_data(self.address, self.REG_ADDR_RESULT, 2)
+			#time.sleep(0.1)
+			raw_val=(data[0]&0x0f)<<8 | data[1]
+			return raw_val
+		except Exception, e:
+			print(str(e))
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
+			return -1.0
+			
+class ADC3:
+	address = 0x52
+	
+	MY_CONFIG = 0x20
+	REG_ADDR_RESULT = 0x00
+	REG_ADDR_ALERT  = 0x01
+	REG_ADDR_CONFIG = 0x02
+	REG_ADDR_LIMITL = 0x03
+	REG_ADDR_LIMITH = 0x04
+	REG_ADDR_HYST   = 0x05
+	REG_ADDR_CONVL  = 0x06
+	REG_ADDR_CONVH  = 0x07
+
+	def __init__(self):
+		try:
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
+			time.sleep(0.1)
+		except Exception, e:
+			print(str(e))
+
+	def adc_read(self):
+		try:
+			data=bus.read_i2c_block_data(self.address, self.REG_ADDR_RESULT, 2)
+			#time.sleep(0.1)
+			raw_val=(data[0]&0x0f)<<8 | data[1]
+			return raw_val
+		except Exception, e:
+			print(str(e))
+			bus.write_byte_data(self.address, self.REG_ADDR_CONFIG,self.MY_CONFIG)
 			return -1.0
