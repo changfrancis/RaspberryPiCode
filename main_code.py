@@ -21,17 +21,30 @@ import sensors
 import grovepi
 import aircon_output
 import coldblock_output
+import stepper_output
 
 # Exit handlers
 def exitProgram():
-	print("\n\n\nExiting...\n")
+	print("Exiting...\n\n\n")
+	
+	sensors.ambience_sensor_enabled = 0 
+	sensors.adc1_sensor_enabled = 0 
+	sensors.adc2_sensor_enabled = 0 
+	sensors.adc3_sensor_enabled = 0 
+	aircon_output.aircon_enabled = 0 
+	coldblock_output.coldblock_enabled = 0
+	stepper_output.motor_enabled = 0
+	
 	grovepi.analogWrite(peltierfanpin1,0)
 	grovepi.analogWrite(peltierfanpin2,0)
 	peltier1.start(0)
 	peltier2.start(0)
 	heater.start(0)
+	GPIO.output(motor_enable_pin,1) #set H to disable
+	GPIO.output(motor_dir_pin,0) #set H to disable
+	GPIO.output(motor_step_pin,0) #set H to disable
 	GPIO.cleanup()
-	time.sleep(1)
+	time.sleep(1.5)
 	sys.exit(0)
 	
 def Read_Temp_Humid():
@@ -43,63 +56,87 @@ def printit():
 
 if __name__ == "__main__": 
 	try:
-		peltierpin1 = 16
-		peltierpin2 = 20
-		heaterpin = 21
-		peltierfanpin1 = 5
-		peltierfanpin2 = 3
+		#Pin setting
+		peltierpin1 = 21 #AC
+		peltierpin2 = 20 #Cold Block
+		heaterpin = 16 #HotEnd
+		peltierfanpin1 = 5 #D5 AC
+		peltierfanpin2 = 3 #D3 Cold block
+		motor_dir_pin = 26 #Stepper motor
+		motor_step_pin = 19
+		motor_enable_pin = 13
 
+		#Configuration of Pin IO
 		GPIO.setmode(GPIO.BCM)
-		GPIO.setwarnings(False)
-		GPIO.setup(peltierpin1, GPIO.OUT)
-		GPIO.setup(peltierpin2, GPIO.OUT)
-		GPIO.setup(heaterpin, GPIO.OUT)
+		GPIO.setwarnings(False) #disable warning
+		#Stepper Motor
+		GPIO.setup(motor_step_pin, GPIO.OUT) 
+		GPIO.setup(motor_dir_pin, GPIO.OUT)
+		GPIO.setup(motor_enable_pin, GPIO.OUT)
+        #Aircon
+		GPIO.setup(peltierpin1, GPIO.OUT) 
 		peltier1 = GPIO.PWM(peltierpin1, 50)
 		peltier1.start(0)
+		grovepi.pinMode(peltierfanpin1,"OUTPUT")
+		#ColdBlock
+		GPIO.setup(peltierpin2, GPIO.OUT) 
 		peltier2 = GPIO.PWM(peltierpin2, 50)
 		peltier2.start(0)
+		grovepi.pinMode(peltierfanpin2,"OUTPUT")
+		#HotEnd
+		GPIO.setup(heaterpin, GPIO.OUT) 
 		heater = GPIO.PWM(heaterpin, 50)
 		heater.start(0)
-		grovepi.pinMode(peltierfanpin1,"OUTPUT")
-		grovepi.pinMode(peltierfanpin2,"OUTPUT")
-		time.sleep(0.5)
-		grovepi.analogWrite(peltierfanpin1,250) #coldblock, 0-255
-		grovepi.analogWrite(peltierfanpin2,0) #aircon, 0-255
-		time.sleep(0.2)
+		time.sleep(0.1)
 		
+		grovepi.analogWrite(peltierfanpin1,0) #aircon, 0-255
+		grovepi.analogWrite(peltierfanpin2,0) #coldblock, 0-255
 		
+		#Starting Individual Thread
+		#thread.start_new_thread(screen.display, ("ScreenThread",))
+		
+		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",))
+		
+		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1))
+		aircon.daemon = True
+		aircon.start()
+		
+		coldblock = threading.Thread(target=coldblock_output.run, args = (peltierpin2,peltier2))
+		coldblock.daemon = True
+		coldblock.start()
+		
+		motorthread = threading.Thread(target=stepper_output.run, args = (motor_dir_pin,motor_step_pin,motor_enable_pin))
+		motorthread.daemon = True
+		motorthread.start()
+		
+		#Enable the devices ans sensors
 		sensors.ambience_sensor_enabled = 0 #enable temp reading after thread start
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-		#thread.start_new_thread(screen.display, ("ScreenThread",))
-		#time.sleep(0.2)
-		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",))
+		aircon_output.aircon_enabled = 1 #enable power to pin
+		coldblock_output.coldblock_enabled = 1 #enable power to pin
+		stepper_output.motor_enabled = 1 #enable power to pin
+		time.sleep(0.8)
+		
+		print("\n\n\nBoot-up ... Successful\n")
 		time.sleep(0.2)
-		print("Boot-up ... Successful\n")
+		
 	except Exception, e:
 		print(str(e))
 		print("Boot-up ... Failed\n")
 		GPIO.cleanup()
 
-	aircon = threading.Thread(target=aircon_output.run)
-	aircon.daemon = True
-	aircon.start()
-	
-	coldblock = threading.Thread(target=coldblock_output.run)
-	coldblock.daemon = True
-	coldblock.start()
-	
 	while True:
 		try:
 			#print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
 			#print("Ambience Humidity = %.1f" %sensors.ambience_humidity  + "%")
-			#print("ADC1 Temp = %.1f" %sensors.adc1_temp_cur + "C")
-			#print("ADC2 Temp = %.1f" %sensors.adc2_temp_cur + "C")
-			#print("ADC3 Temp = %.1f" %sensors.adc3_temp_cur + "C")
-			time.sleep(0.75)
+			#print("AC = %.1f" %sensors.adc1_temp_cur + "C")
+			#print("ColdBlock = %.1f" %sensors.adc2_temp_cur + "C")
+			#print("HotEnd = %.1f" %sensors.adc3_temp_cur + "C")
+			time.sleep(1)
 		except KeyboardInterrupt:
-			print("\nKeyboard Shutdown\n")
+			print("\n\n\nKeyboard Shutdown")
 			exitProgram()
 			break
 		except IOError:

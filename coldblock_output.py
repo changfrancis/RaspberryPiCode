@@ -6,17 +6,19 @@ import sensors
 import grovepi
 import screen
 
-def run():
-	#change back to peltier1 pin 16, test is p2 = pin 20
-	#peltierpin2 = 20
-	#peltier2 = GPIO.PWM(peltierpin2, 50)
-	#peltier2.start(0)
-	coldblockPID = PIDclass(12,2,10) #init P I D value
+#Enable Variables
+coldblock_enabled = 0
+
+def run(peltierpin2, peltier2):
+	global coldblock_enabled
+	peltier2.start(0)
+	coldblockPID = PIDclass(15,5,10) #init P I D value
 	coldblockPID.SetPoint = 30.0 #target temperature in degree
 	coldblockPID.setSampleTime(0)
+	print("Coldblock PID ... Started")
 	next_call = time.time()
 	while True:
-		coldblockPID.update(sensors.adc1_temp_cur) #peltier blue 
+		coldblockPID.update(sensors.adc2_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
 		buf = coldblockPID.output * -1.0
 		#print(buf)
@@ -26,8 +28,11 @@ def run():
 			coldblock_pwm = 0
 		else:
 			coldblock_pwm = buf
-		#peltier2.start(coldblock_pwm)
-		print("ColdblockTemp = %.1fC PeltierOutput = %.1f" %(sensors.adc1_temp_cur,coldblock_pwm) + "%")
+		if(coldblock_enabled):
+			peltier2.start(coldblock_pwm)
+			print("ColdblockTemp = %.1fC PeltierOutput = %.1f" %(sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
+		else:
+			peltier2.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	

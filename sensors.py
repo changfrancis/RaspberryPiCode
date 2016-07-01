@@ -2,8 +2,6 @@ import time
 import grove_i2c_temp_hum_mini
 import grove_i2c_adc
 
-#Setting Variables
-
 #Ambience Sensors
 ht_sensor = grove_i2c_temp_hum_mini.th02()
 ambience_sensor_enabled = 0
@@ -15,13 +13,13 @@ ambience_humidity = 80
 adc1 = grove_i2c_adc.ADC1()
 adc2 = grove_i2c_adc.ADC2()
 adc3 = grove_i2c_adc.ADC3()
-adc1_sensor_enabled = 0
+adc1_sensor_enabled = 0 #AC
 adc1_temp_cur = 25
 adc1_temp_old = 25
-adc2_sensor_enabled = 0
+adc2_sensor_enabled = 0 #Cold block
 adc2_temp_cur = 25
 adc2_temp_old = 25
-adc3_sensor_enabled = 0
+adc3_sensor_enabled = 0 #hot end
 adc3_temp_cur = 25
 adc3_temp_old = 25
 
