@@ -1,1 +1,3 @@
 print('Python', python_version())
+https://www.baldengineer.com/raspberry-pi-gui-tutorial.html
+https://www.youtube.com/watch?v=Dmo8eZG5I2w
