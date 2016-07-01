@@ -11,6 +11,7 @@ coldblock_enabled = 0
 
 def run(peltierpin2, peltier2):
 	global coldblock_enabled
+	coldblock_pwm = 0
 	peltier2.start(0)
 	coldblockPID = PIDclass(15,5,10) #init P I D value
 	coldblockPID.SetPoint = 30.0 #target temperature in degree

@@ -22,6 +22,7 @@ import grovepi
 import aircon_output
 import coldblock_output
 import stepper_output
+import hotend_output
 
 # Exit handlers
 def exitProgram():
@@ -33,6 +34,7 @@ def exitProgram():
 	sensors.adc3_sensor_enabled = 0 
 	aircon_output.aircon_enabled = 0 
 	coldblock_output.coldblock_enabled = 0
+	hotend_output.hotend_enabled = 0 
 	stepper_output.motor_enabled = 0
 	
 	grovepi.analogWrite(peltierfanpin1,0)
@@ -56,6 +58,7 @@ def printit():
 
 if __name__ == "__main__": 
 	try:
+		print(sys.version)
 		#Pin setting
 		peltierpin1 = 21 #AC
 		peltierpin2 = 20 #Cold Block
@@ -90,7 +93,7 @@ if __name__ == "__main__":
 		time.sleep(0.1)
 		
 		grovepi.analogWrite(peltierfanpin1,0) #aircon, 0-255
-		grovepi.analogWrite(peltierfanpin2,0) #coldblock, 0-255
+		grovepi.analogWrite(peltierfanpin2,255) #coldblock, 0-255
 		
 		#Starting Individual Thread
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
@@ -105,6 +108,10 @@ if __name__ == "__main__":
 		coldblock.daemon = True
 		coldblock.start()
 		
+		hotend = threading.Thread(target=hotend_output.run, args = (heaterpin, heater))
+		hotend.daemon = True
+		hotend.start()
+		
 		motorthread = threading.Thread(target=stepper_output.run, args = (motor_dir_pin,motor_step_pin,motor_enable_pin))
 		motorthread.daemon = True
 		motorthread.start()
@@ -116,7 +123,9 @@ if __name__ == "__main__":
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
 		aircon_output.aircon_enabled = 1 #enable power to pin
 		coldblock_output.coldblock_enabled = 1 #enable power to pin
+		hotend_output.hotend_enabled = 1 #enable power to pin
 		stepper_output.motor_enabled = 1 #enable power to pin
+
 		time.sleep(0.8)
 		
 		print("\n\n\nBoot-up ... Successful\n")

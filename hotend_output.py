@@ -7,33 +7,33 @@ import grovepi
 import screen
 
 #Enable Variables
-aircon_enabled = 0
+hotend_enabled = 0
 
-def run(peltierpin1, peltier1):
-	global aircon_enabled
-	aircon_pwm = 0
-	peltier1.start(0)
-	airconPID = PIDclass(18,6,5) #init P I D value
-	airconPID.SetPoint = 30.0 #target temperature in degree
-	airconPID.setSampleTime(0)
-	print("Aircon PID ... Started")
+def run(heaterpin, heater):
+	global hotend_enabled
+	hotend_pwm = 0
+	heater.start(0)
+	hotendPID = PIDclass(8,0.8,4.5) #init P I D value
+	hotendPID.SetPoint = 30.0 #target temperature in degree
+	hotendPID.setSampleTime(0)
+	print("Hotend PID ... Started")
 	next_call = time.time()
 	while True:
-		airconPID.update(sensors.adc1_temp_cur) #peltier blue 
+		hotendPID.update(sensors.adc3_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
-		buf = airconPID.output * -1.0
+		buf = hotendPID.output * 1.0
 		#print(buf)
 		if(buf > 100):
-			aircon_pwm = 100
+			hotend_pwm = 100
 		elif(buf <= 0):
-			aircon_pwm = 0
+			hotend_pwm = 0
 		else:
-			aircon_pwm = buf
-		if(aircon_enabled):
-			peltier1.start(aircon_pwm)
-			print("Aircon Temp = %.1fC PeltierOutput = %.1f" %(sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+			hotend_pwm = buf
+		if(hotend_enabled):
+			heater.start(hotend_pwm)
+			print("Hotend Temp = %.1fC HeaterOutput = %.1f" %(sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
 		else:
-			peltier1.start(0)
+			heater.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	
@@ -129,3 +129,4 @@ class PIDclass:
         Based on a pre-determined sampe time, the PID decides if it should compute or return immediately.
         """
         self.sample_time = sample_time
+
