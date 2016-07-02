@@ -2,1002 +2,895 @@ print('Python', python_version())
 https://www.baldengineer.com/raspberry-pi-gui-tutorial.html
 https://www.youtube.com/watch?v=Dmo8eZG5I2w
 
-#include "Herkulex.h"
-#include "SoftwareSerial.h"
-
-// Macro for the Serial port selection
-#define HSerial1     1 		// Write in Serial 1 port Arduino Mega - Pin 19(rx) - 18 (tx) 
-#define HSerial2     2   	// Write in Serial 2 port Arduino Mega - Pin 17(rx) - 16 (tx) 
-#define HSerial3     3   	// Write in Serial 3 port Arduino Mega - Pin 15(rx) - 14 (tx)
-#define SSerial      4   	// Write in SoftSerial Arduino with 328p or Mega
- 
-extern SoftwareSerial SwSerial(0, 1);
-
-// Herkulex begin with Arduino Uno
-void HerkulexClass::begin(long baud, int rx, int tx)
-{
-	SwSerial.setRX(rx);
-	SwSerial.setTX(tx);
-	SwSerial.begin(baud);
-	port = SSerial;
-}
-
-#if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega128__) || defined (__AVR_ATmega2560__)
-// Herkulex begin with Arduino Mega - Serial 1
-void HerkulexClass::beginSerial1(long baud)
-{
-	Serial1.begin(baud);
-	port = HSerial1;
-}
-
-// Herkulex begin with Arduino Mega - Serial 2
-void HerkulexClass::beginSerial2(long baud)
-{
-	Serial2.begin(baud);
-	port=HSerial2;
-}
-
-// Herkulex begin with Arduino Mega - Serial 3
-void HerkulexClass::beginSerial3(long baud)
-{
-	Serial3.begin(baud);
-	port = HSerial3;
-}
-#endif
-
-// Herkulex end
-void HerkulexClass::end()
-{
-	switch (port)
-	{
-	case SSerial:
-		SwSerial.end();
-		break;
-    #if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega128__) || defined (__AVR_ATmega2560__)
-	case HSerial1:
-		Serial1.end();
-		break;
-	case HSerial2:
-		Serial2.end();
-		break;
-	case HSerial3:
-		Serial3.end();
-		break;
-	#endif
-	}
-}
-
-// initialize servos
-void HerkulexClass::initialize()
-{
-        conta=0;
-		lenghtString=0;
-        delay(100);       
-        clearError(BROADCAST_ID);	// clear error for all servos
-        delay(10);
-        ACK(1);						// set ACK
-        delay(10);
-        torqueON(BROADCAST_ID);		// torqueON for all servos
-        delay(10);
-		
-}
-
-// stat
-byte HerkulexClass::stat(int servoID)
-{
-	{
-	pSize    = 0x07;			//3.Packet size
-	pID      = servoID;			//4.Servo ID - 0XFE=All servos
-	cmd      = HSTAT;			//5.CMD
-	
-	ck1=(pSize^pID^cmd)&0xFE;
-        ck2=(~(pSize^pID^cmd))&0xFE ; 
-  
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	     
-	sendData(dataEx, pSize);
-	delay(2);
-	readData(9); 				// read 9 bytes from serial
-
-	
-	pSize = dataEx[2];           // 3.Packet size 7-58
-	pID   = dataEx[3];           // 4. Servo ID
-	cmd   = dataEx[4];           // 5. CMD
-	data[0]=dataEx[7];
-    data[1]=dataEx[8];
-    lenghtString=2;
-
-	
-    ck1 = (dataEx[2]^dataEx[3]^dataEx[4]^dataEx[7]^dataEx[8]) & 0xFE;
-	ck2=checksum2(ck1);			
-	
-	if (ck1 != dataEx[5]) return -1; //checksum verify
-	if (ck2 != dataEx[6]) return -2;
-
-	return dataEx[7];			// return status
-}
-}
-
-// torque on - 
-void HerkulexClass::torqueON(int servoID)
-{
-	pSize = 0x0A;               // 3.Packet size 7-58
-	pID   = servoID;            // 4. Servo ID
-	cmd   = HRAMWRITE;          // 5. CMD
-	data[0]=0x34;               // 8. Address
-	data[1]=0x01;               // 9. Lenght
-	data[2]=0x60;               // 10. 0x60=Torque ON
-	lenghtString=3;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address 52
-	dataEx[8] = data[1]; 		// Length
-	dataEx[9] = data[2]; 		// Torque ON
-
-	sendData(dataEx, pSize);
-}
-
-// torque off - the torque is FREE, not Break
-void HerkulexClass::torqueOFF(int servoID)
-{
-	pSize = 0x0A;               // 3.Packet size 7-58
-	pID   = servoID;            // 4. Servo ID
-	cmd   = HRAMWRITE;          // 5. CMD
-	data[0]=0x34;               // 8. Address
-	data[1]=0x01;               // 9. Lenght
-	data[2]=0x00;               // 10. 0x00=Torque Free
-	lenghtString=3;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address 52
-	dataEx[8] = data[1]; 		// Length
-	dataEx[9] = data[2]; 		// Torque Free
-
-    sendData(dataEx, pSize);
-
-}
-
-// ACK  - 0=No Replay, 1=Only reply to READ CMD, 2=Always reply
-void HerkulexClass::ACK(int valueACK)
-{
-	pSize = 0x0A;               // 3.Packet size 7-58
-	pID   = 0xFE;	            // 4. Servo ID
-	cmd   = HRAMWRITE;          // 5. CMD
-	data[0]=0x34;               // 8. Address
-	data[1]=0x01;               // 9. Lenght
-	data[2]=valueACK;           // 10.Value. 0=No Replay, 1=Only reply to READ CMD, 2=Always reply
-	lenghtString=3;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address 52
-	dataEx[8] = data[1]; 		// Length
-	dataEx[9] = data[2]; 		// Value
-
- 	sendData(dataEx, pSize);
-}
-
-// model - 1=0101 - 2=0201
-byte HerkulexClass::model()
-{
-	pSize = 0x09;               // 3.Packet size 7-58
-	pID   = 0xFE;	            // 4. Servo ID
-	cmd   = HEEPREAD;           // 5. CMD
-	data[0]=0x00;               // 8. Address
-	data[1]=0x01;               // 9. Lenght
-	lenghtString=2;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address
-	dataEx[8] = data[1]; 		// Length
-
-    sendData(dataEx, pSize);
-
-	delay(1);
-	readData(9);
-	
-	pSize = dataEx[2];           // 3.Packet size 7-58
-	pID   = dataEx[3];           // 4. Servo ID
-	cmd   = dataEx[4];           // 5. CMD
-	data[0]=dataEx[7];           // 8. 1st byte
-	lenghtString=1;              // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	if (ck1 != dataEx[5]) return -1; //checksum verify
-	if (ck2 != dataEx[6]) return -2;
-		
-	return dataEx[7];			// return status
-
-}
-
-// setID - Need to restart the servo
-void HerkulexClass::set_ID(int ID_Old, int ID_New)
-{
-	pSize = 0x0A;               // 3.Packet size 7-58
-	pID   = ID_Old;		        // 4. Servo ID OLD - original servo ID
-	cmd   = HEEPWRITE;          // 5. CMD
-	data[0]=0x06;               // 8. Address
-	data[1]=0x01;               // 9. Lenght
-	data[2]=ID_New;             // 10. ServoID NEW
-	lenghtString=3;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address 52
-	dataEx[8] = data[1]; 		// Length
-	dataEx[9] = data[2]; 		// Value
-
-	sendData(dataEx, pSize);
-
-}
-
-// clearError
-void HerkulexClass::clearError(int servoID)
-{
-	pSize = 0x0B;               // 3.Packet size 7-58
-	pID   = servoID;     		// 4. Servo ID - 253=all servos
-	cmd   = HRAMWRITE;          // 5. CMD
-	data[0]=0x30;               // 8. Address
-	data[1]=0x02;               // 9. Lenght
-	data[2]=0x00;               // 10. Write error=0
-	data[3]=0x00;               // 10. Write detail error=0
-	
-	lenghtString=4;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0]; 		// Address 52
-	dataEx[8] = data[1]; 		// Length
-	dataEx[9] = data[2]; 		// Value1
-	dataEx[10]= data[3]; 		// Value2
-
-	sendData(dataEx, pSize);
-}
-
-// move all servo at the same time to a position: servo list building
-void HerkulexClass::moveAll(int servoID, int Goal, int iLed)
-{
-	  if (Goal > 1023 || Goal < 0)
-		return;						 //0 <--> 1023 range
-	  
-	  int iMode=0;                   //mode=position
-	  int iStop=0;                   //stop=0
-	  
-
-	  // Position definition
-	  int posLSB=Goal & 0X00FF;					// MSB Pos
-	  int posMSB=(Goal & 0XFF00) >> 8;			// LSB Pos
-
-	  //led 
-	  int iBlue=0;
-	  int iGreen=0;
-	  int iRed=0;
-	  switch (iLed) {
-	  case 1:
-		iGreen=1;
-		break;
-	  case 2:
-		iBlue=1;
-		break;
-	  case 3:
-		iRed=1;
-		break;
-	  }
-	  
-	  int SetValue=iStop+iMode*2+iGreen*4+iBlue*8+iRed*16;	//assign led value
-
-	  addData(posLSB, posMSB, SetValue, servoID);	//add servo data to list, pos mode
-}
-
-// move all servo at the same time to a position: servo list building
-void HerkulexClass::moveAllAngle(int servoID, float angle, int iLed)
-{
-		if (angle > 160.0|| angle < -160.0) return; // out of the range	
-		int position = (int)(angle/0.325) + 512;
-		moveAll(servoID, position, iLed);
-}
-
-
-
-// move all servo at the same time with different speeds: servo list building
-void HerkulexClass::moveSpeedAll(int servoID, int Goal, int iLed)
-{
-	  if (Goal > 1023 || Goal < -1023)
-		return;								 //-1023 <--> 1023 range
-
-	  int iMode=1;                  		// mode=continous rotation
-	  int iStop=0;                  		// Stop=0
-
-	  // Speed definition
-	  int GoalSpeedSign;
-	  if (Goal < 0) {
-		GoalSpeedSign = (-1)* Goal ;
-		GoalSpeedSign |= 0x4000;  //bit n°14 
-	  } 
-	  else {
-		GoalSpeedSign = Goal;
-	  }
-
-	  int speedGoalLSB=GoalSpeedSign & 0X00FF; 	      		 // MSB speedGoal 
-	  int speedGoalMSB=(GoalSpeedSign & 0xFF00) >> 8;        // LSB speedGoal 
-
-	  //led 
-	  int iBlue=0;
-	  int iGreen=0;
-	  int iRed=0;
-	  switch (iLed) {
-	  case 1:
-		iGreen=1;
-		break;
-	  case 2:
-		iBlue=1;
-		break;
-	  case 3:
-		iRed=1;
-		break;
-	  }
-
-	  int SetValue=iStop+iMode*2+iGreen*4+iBlue*8+iRed*16;	//assign led value
-
-	  addData(speedGoalLSB, speedGoalMSB, SetValue, servoID);		//add servo data to list, speed mode
-}
-
-
-
-// move all servo with the same execution time
-void HerkulexClass::actionAll(int pTime)
-{
-	if ((pTime <0) || (pTime > 2856)) return;
-
-    pSize = 0x08 + conta;     	    // 3.Packet size 7-58
-	cmd   = HSJOG;		 			// 5. CMD SJOG Write n servo with same execution time
-	playTime=int((float)pTime/11.2);// 8. Execution time
- 
-    pID=0xFE^playTime;
-    ck1=checksum1(moveData,conta);	//6. Checksum1
-	ck2=checksum2(ck1);				//7. Checksum2
-
-    pID=0xFE;
-	dataEx[0] = 0xFF;				// Packet Header
-	dataEx[1] = 0xFF;				// Packet Header	
-	dataEx[2] = pSize;	 			// Packet Size
-	dataEx[3] = pID;				// Servo ID
-	dataEx[4] = cmd;				// Command Ram Write
-	dataEx[5] = ck1;				// Checksum 1
-	dataEx[6] = ck2;				// Checksum 2
-	dataEx[7] = playTime;			// Execution time	
-	
-	for (int i=0; i < conta; i++)
-		dataEx[i+8]=moveData[i];	// Variable servo data
-
-	sendData(dataEx, pSize);
-
-	conta=0; 						//reset counter   
-
-}
-
-// get Position
- int HerkulexClass::getPosition(int servoID) {
-	int Position  = 0;
-
-    pSize = 0x09;               // 3.Packet size 7-58
-	pID   = servoID;     	    // 4. Servo ID - 253=all servos
-	cmd   = HRAMREAD;           // 5. CMD
-	data[0]=0x3A;               // 8. Address
-	data[1]=0x02;               // 9. Lenght
-	
-	lenghtString=2;             // lenghtData
-  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0];      	// Address  
-	dataEx[8] = data[1]; 		// Length
-	
-	sendData(dataEx, pSize);
-
-    delay(1);
-	readData(13);
-
-        	
-	pSize = dataEx[2];           // 3.Packet size 7-58
-	pID   = dataEx[3];           // 4. Servo ID
-	cmd   = dataEx[4];           // 5. CMD
-	data[0]=dataEx[7];
-    data[1]=dataEx[8];
-    data[2]=dataEx[9];
-    data[3]=dataEx[10];
-    data[4]=dataEx[11];
-    data[5]=dataEx[12];
-    lenghtString=6;
-
-    ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-    if (ck1 != dataEx[5]) return -1;
-	if (ck2 != dataEx[6]) return -1;
-
-	Position = ((dataEx[10]&0x03)<<8) | dataEx[9];
-        return Position;
-	
-}
-
-float HerkulexClass::getAngle(int servoID) {
-	int pos = (int)getPosition(servoID);
-	return (pos-512) * 0.325;
-}
-
-// reboot single servo - pay attention 253 - all servos doesn't work!
-void HerkulexClass::reboot(int servoID) {
-        
-    pSize = 0x07;               // 3.Packet size 7-58
-	pID   = servoID;     	    // 4. Servo ID - 253=all servos
-	cmd   = HREBOOT;            // 5. CMD
-    ck1=(pSize^pID^cmd)&0xFE;
-    ck2=(~(pSize^pID^cmd))&0xFE ; ;	
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	
-	sendData(dataEx, pSize);
-
-}
-
-// LED  - see table of colors 
-void HerkulexClass::setLed(int servoID, int valueLed)
-{
-	pSize   = 0x0A;               // 3.Packet size 7-58
-	pID     = servoID;            // 4. Servo ID
-	cmd     = HRAMWRITE;          // 5. CMD
-	data[0] = 0x35;               // 8. Address 53
-    data[1] = 0x01;               // 9. Lenght
-	data[2] = valueLed;           // 10.LedValue
-	lenghtString=3;               // lenghtData
-  	  	
-	ck1=checksum1(data,lenghtString);	//6. Checksum1
-	ck2=checksum2(ck1);					//7. Checksum2
-
-	dataEx[0] = 0xFF;			// Packet Header
-	dataEx[1] = 0xFF;			// Packet Header	
-	dataEx[2] = pSize;	 		// Packet Size
-	dataEx[3] = pID;			// Servo ID
-	dataEx[4] = cmd;			// Command Ram Write
-	dataEx[5] = ck1;			// Checksum 1
-	dataEx[6] = ck2;			// Checksum 2
-	dataEx[7] = data[0];        // Address
-	dataEx[8] = data[1];       	// Length
-	dataEx[9] = data[2];        // Value
-
-	sendData(dataEx, pSize);
-}
-
-// get the speed for one servo - values betweeb -1023 <--> 1023
-int HerkulexClass::getSpeed(int servoID) {
-  int speedy  = 0;
-
-  pSize = 0x09;               // 3.Packet size 7-58
-  pID   = servoID;     	   	  // 4. Servo ID 
-  cmd   = HRAMREAD;           // 5. CMD
-  data[0]=0x40;               // 8. Address
-  data[1]=0x02;               // 9. Lenght
-
-  lenghtString=2;             // lenghtData
-
-  ck1=checksum1(data,lenghtString);		//6. Checksum1
-  ck2=checksum2(ck1);					//7. Checksum2
-
-  dataEx[0] = 0xFF;			// Packet Header
-  dataEx[1] = 0xFF;			// Packet Header	
-  dataEx[2] = pSize;		// Packet Size
-  dataEx[3] = pID;			// Servo ID
-  dataEx[4] = cmd;			// Command Ram Write
-  dataEx[5] = ck1;			// Checksum 1
-  dataEx[6] = ck2;			// Checksum 2
-  dataEx[7] = data[0]; 	    // Address  
-  dataEx[8] = data[1]; 		// Length
-
-  sendData(dataEx, pSize);
-
-  delay(1);
-  readData(13);
-
-
-  pSize = dataEx[2];           // 3.Packet size 7-58
-  pID   = dataEx[3];           // 4. Servo ID
-  cmd   = dataEx[4];           // 5. CMD
-  data[0]=dataEx[7];
-  data[1]=dataEx[8];
-  data[2]=dataEx[9];
-  data[3]=dataEx[10];
-  data[4]=dataEx[11];
-  data[5]=dataEx[12];
-  lenghtString=6;
-
-  ck1=checksum1(data,lenghtString);	//6. Checksum1
-  ck2=checksum2(ck1);				//7. Checksum2
-
-  if (ck1 != dataEx[5]) return -1;
-  if (ck2 != dataEx[6]) return -1;
-
-  speedy = ((dataEx[10]&0xFF)<<8) | dataEx[9];
-  return speedy;
-
-}
-
-
-
-// move one servo with continous rotation
-void HerkulexClass::moveSpeedOne(int servoID, int Goal, int pTime, int iLed)
-{
-  if (Goal > 1023 || Goal < -1023) return;              // speed (goal) non correct
-  if ((pTime <0) || (pTime > 2856)) return;
-
-  int GoalSpeedSign;
-  if (Goal < 0) {
-    GoalSpeedSign = (-1)* Goal ;
-    GoalSpeedSign |= 0x4000;  //bit n°14 
-  } 
-  else {
-    GoalSpeedSign = Goal;
-  }
-  int speedGoalLSB=GoalSpeedSign & 0X00FF; 		       // MSB speedGoal 
-  int speedGoalMSB=(GoalSpeedSign & 0xFF00) >> 8;      // LSB speedGoal 
-
-  //led 
-  int iBlue=0;
-  int iGreen=0;
-  int iRed=0;
-  switch (iLed) {
-  case 1:
-    iGreen=1;
-    break;
-  case 2:
-    iBlue=1;
-    break;
-  case 3:
-    iRed=1;
-    break;
-  }
-  int SetValue=2+iGreen*4+iBlue*8+iRed*16;		//assign led value 
-
-  playTime=int((float)pTime/11.2);				// 8. Execution time
-
-  pSize = 0x0C;              					// 3.Packet size 7-58
-  cmd   = HSJOG;      					        // 5. CMD
-
-  data[0]=speedGoalLSB;            			    // 8. speedLSB
-  data[1]=speedGoalMSB;              			// 9. speedMSB
-  data[2]=SetValue;                          	// 10. Mode=0;
-  data[3]=servoID;                    			// 11. ServoID
-
-  pID=servoID^playTime;
-
-  lenghtString=4;             					// lenghtData
-
-  ck1=checksum1(data,lenghtString);				//6. Checksum1
-  ck2=checksum2(ck1);							//7. Checksum2
-
-  pID=servoID;
-
-  dataEx[0] = 0xFF;				// Packet Header
-  dataEx[1] = 0xFF;				// Packet Header	
-  dataEx[2] = pSize;	 		// Packet Size
-  dataEx[3] = pID;				// Servo ID
-  dataEx[4] = cmd;				// Command Ram Write
-  dataEx[5] = ck1;				// Checksum 1
-  dataEx[6] = ck2;				// Checksum 2
-  dataEx[7] = playTime;  		// Execution time	
-  dataEx[8] = data[0];
-  dataEx[9] = data[1];
-  dataEx[10] = data[2];
-  dataEx[11] = data[3];
-  
-  sendData(dataEx, pSize);
-
-}
-
-// move one servo at goal position 0 - 1024
-void HerkulexClass::moveOne(int servoID, int Goal, int pTime, int iLed)
-{
-  if (Goal > 1023 || Goal < 0) return;              // speed (goal) non correct
-  if ((pTime <0) || (pTime > 2856)) return;
-
-  // Position definition
-  int posLSB=Goal & 0X00FF;								// MSB Pos
-  int posMSB=(Goal & 0XFF00) >> 8;						// LSB Pos
-
-  //led 
-  int iBlue=0;
-  int iGreen=0;
-  int iRed=0;
-  switch (iLed) {
-  case 1:
-    iGreen=1;
-    break;
-  case 2:
-    iBlue=1;
-    break;
-  case 3:
-    iRed=1;
-    break;
-  }
-  int SetValue=iGreen*4+iBlue*8+iRed*16;	//assign led value 
-
-  playTime=int((float)pTime/11.2);			// 8. Execution time
-
-  pSize = 0x0C;          			    	// 3.Packet size 7-58
-  cmd   = HSJOG;              				// 5. CMD
-
-  data[0]=posLSB;               			// 8. speedLSB
-  data[1]=posMSB;               			// 9. speedMSB
-  data[2]=SetValue;                         // 10. Mode=0;
-  data[3]=servoID;                    		// 11. ServoID
-
-    pID=servoID^playTime;
-
-  lenghtString=4;             				// lenghtData
-
-  ck1=checksum1(data,lenghtString);			//6. Checksum1
-  ck2=checksum2(ck1);						//7. Checksum2
-
-  pID=servoID;
-
-  dataEx[0] = 0xFF;				// Packet Header
-  dataEx[1] = 0xFF;				// Packet Header	
-  dataEx[2] = pSize;	 		// Packet Size
-  dataEx[3] = pID;				// Servo ID
-  dataEx[4] = cmd;				// Command Ram Write
-  dataEx[5] = ck1;				// Checksum 1
-  dataEx[6] = ck2;				// Checksum 2
-  dataEx[7] = playTime;  		// Execution time	
-  dataEx[8] = data[0];
-  dataEx[9] = data[1];
-  dataEx[10] = data[2];
-  dataEx[11] = data[3];
-
-  sendData(dataEx, pSize);
-
-}
-
-// move one servo to an angle between -160 and 160
-void HerkulexClass::moveOneAngle(int servoID, float angle, int pTime, int iLed) {
-	if (angle > 160.0|| angle < -160.0) return;	
-	int position = (int)(angle/0.325) + 512;
-	moveOne(servoID, position, pTime, iLed);
-}
-
-// write registry in the RAM: one byte 
-void HerkulexClass::writeRegistryRAM(int servoID, int address, int writeByte)
-{
-  pSize = 0x0A;               	// 3.Packet size 7-58
-  pID   = servoID;     			// 4. Servo ID - 253=all servos
-  cmd   = HRAMWRITE;          	// 5. CMD
-  data[0]=address;              // 8. Address
-  data[1]=0x01;               	// 9. Lenght
-  data[2]=writeByte;            // 10. Write error=0
- 
-  lenghtString=3;             	// lenghtData
-
-  ck1=checksum1(data,lenghtString);	//6. Checksum1
-  ck2=checksum2(ck1);				//7. Checksum2
-
-  dataEx[0] = 0xFF;			// Packet Header
-  dataEx[1] = 0xFF;			// Packet Header	
-  dataEx[2] = pSize;	 	// Packet Size
-  dataEx[3] = pID;			// Servo ID
-  dataEx[4] = cmd;			// Command Ram Write
-  dataEx[5] = ck1;			// Checksum 1
-  dataEx[6] = ck2;			// Checksum 2
-  dataEx[7] = data[0]; 		// Address 52
-  dataEx[8] = data[1]; 		// Length
-  dataEx[9] = data[2]; 		// Value1
-  dataEx[10]= data[3]; 		// Value2
-
-  sendData(dataEx, pSize);
-
-}
-
-// write registry in the EEP memory (ROM): one byte 
-void HerkulexClass::writeRegistryEEP(int servoID, int address, int writeByte)
-{
-  pSize = 0x0A;                  // 3.Packet size 7-58
-  pID   = servoID;     	         // 4. Servo ID - 253=all servos
-  cmd   = HEEPWRITE;             // 5. CMD
-  data[0]=address;               // 8. Address
-  data[1]=0x01;                  // 9. Lenght
-  data[2]=writeByte;             // 10. Write error=0
- 
-  lenghtString=3;           	 // lenghtData
-
-  ck1=checksum1(data,lenghtString);	//6. Checksum1
-  ck2=checksum2(ck1);				//7. Checksum2
-
-  dataEx[0] = 0xFF;			// Packet Header
-  dataEx[1] = 0xFF;			// Packet Header	
-  dataEx[2] = pSize;		// Packet Size
-  dataEx[3] = pID;			// Servo ID
-  dataEx[4] = cmd;			// Command Ram Write
-  dataEx[5] = ck1;			// Checksum 1
-  dataEx[6] = ck2;			// Checksum 2
-  dataEx[7] = data[0]; 		// Address 52
-  dataEx[8] = data[1]; 		// Length
-  dataEx[9] = data[2]; 		// Value1
-  dataEx[10]= data[3]; 		// Value2
-
-  sendData(dataEx, pSize);
-
-}
-
-
-
-// Private Methods //////////////////////////////////////////////////////////////
-
-// checksum1
-int HerkulexClass::checksum1(byte* data, int lenghtString)
-{
-  XOR = 0;	
-  XOR = XOR ^ pSize;
-  XOR = XOR ^ pID;
-  XOR = XOR ^ cmd;
-  for (int i = 0; i < lenghtString; i++) 
-  {
-    XOR = XOR ^ data[i];
-  }
-  return XOR&0xFE;
-}
-
-
-// checksum2
-int HerkulexClass::checksum2(int XOR)
-{
-  return (~XOR)&0xFE;
-}
-
-// add data to variable list servo for syncro execution
-void HerkulexClass::addData(int GoalLSB, int GoalMSB, int set, int servoID)
-{
-  moveData[conta++]=GoalLSB;  
-  moveData[conta++]=GoalMSB;
-  moveData[conta++]=set;
-  moveData[conta++]=servoID;
-}
-
-// Sending the buffer long lenght to Serial port
-void HerkulexClass::sendData(byte* buffer, int lenght)
-{
-		clearBuffer(); 		//clear the serialport buffer - try to do it!
-        switch (port)
-		{
-			case SSerial:
-						SwSerial.write(buffer, lenght);
-						delay(1);
-						break;
-			#if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega128__) || defined (__AVR_ATmega2560__)
-			case HSerial1:
-				Serial1.write(buffer, lenght);
-				delay(1);
-				break;
-			case HSerial2:
-				Serial2.write(buffer, lenght);
-				delay(1);
-				break;
-			case HSerial3:
-				Serial3.write(buffer, lenght);
-				delay(1);
-				break;
-			#endif
-		}
-}
-
-// * Receiving the lenght of bytes from Serial port
-void HerkulexClass::readData(int size)
-{
-	int i = 0;
-    int beginsave=0;
-    int Time_Counter=0;
-    switch (port)
-	{
-	case SSerial:
-
-        while((SwSerial.available() < size) & (Time_Counter < TIME_OUT)){
-        		Time_Counter++;
-        		delayMicroseconds(1000);  //wait 1 millisecond for 10 times
-		}
-        	
-		while (SwSerial.available() > 0){
-			byte inchar = (byte)SwSerial.read();
-			if ( (inchar == 0xFF) & ((byte)SwSerial.peek() == 0xFF) ){
-					beginsave=1; 
-					i=0; 				 // if found new header, begin again
-			}
-			if (beginsave==1 && i<size) {
-				   dataEx[i] = inchar;
-				   i++;
-			}
-		}
-		SwSerial.flush();
-		break;
-	
-	#if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega128__) || defined (__AVR_ATmega2560__)
-	case HSerial1:
-		while((Serial1.available() < size) & (Time_Counter < TIME_OUT)){
-        		Time_Counter++;
-        		delayMicroseconds(1000);
-		}      	
-		while (Serial1.available() > 0){
-      		byte inchar = (byte)Serial1.read();
-			//printHexByte(inchar);
-        	if ( (inchar == 0xFF) & ((byte)Serial1.peek() == 0xFF) ){
-						beginsave=1;
-						i=0; 						
-             }
-            if (beginsave==1 && i<size) {
-                       dataEx[i] = inchar;
-                       i++;
-			}
-		}
-		break;
-	
-	case HSerial2:
-	    while((Serial2.available() < size) & (Time_Counter < TIME_OUT)){
-        		Time_Counter++;
-        		delayMicroseconds(1000);
-		}
-        	
-		while (Serial2.available() > 0){
-			byte inchar = (byte)Serial2.read();
-			if ( (inchar == 0xFF) & ((byte)Serial2.peek() == 0xFF) ){
-					beginsave=1;
-					i=0; 					
-			}
-			if (beginsave==1 && i<size) {
-				   dataEx[i] = inchar;
-				   i++;
-			}
-		}
-		break;
-
-	case HSerial3:
-		while((Serial3.available() < size) & (Time_Counter < TIME_OUT)){
-			Time_Counter++;
-			delayMicroseconds(1000);
-		}
-		
-		while (Serial3.available() > 0){
-			byte inchar = (byte)Serial3.read();
-			if ( (inchar == 0xFF) & ((byte)Serial3.peek() == 0xFF) ){
-					beginsave=1;
-					i=0; 
-			}
-			if (beginsave==1 && i<size) {
-				   dataEx[i] = inchar;
-				   i++;
-			}
-		}
-		break;
-	#endif
-	}
-}
-
-//clear buffer in the serial port - better - try to do this
-void HerkulexClass::clearBuffer()
-{
-  switch (port)
-	{
-	case SSerial:
-                SwSerial.flush();
-                delay(1);
-                break;
-	#if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega128__) || defined (__AVR_ATmega2560__)
-	case HSerial1:
-				Serial1.flush();
-				while (Serial1.available()){
-				Serial1.read();
-				delayMicroseconds(200);
-				}
-
-		break;
-	case HSerial2:
-	            Serial2.flush();
-				while (Serial2.available()){
-				Serial2.read();
-				delayMicroseconds(200);
-				}
-		break;
-	case HSerial3:
-	            Serial3.flush();
-				while (Serial3.available()){
-					Serial3.read();
-					delayMicroseconds(200);
-				}
-
-		break;
-	#endif
-	}
-}
-
-void HerkulexClass::printHexByte(byte x)
-{
-  Serial.print("0x");
-  if (x < 16) {
-    Serial.print('0');
-  }
-    Serial.print(x, HEX);
-    Serial.print(" ");
-
-}
-
-
-
- HerkulexClass Herkulex;
+#!/usr/bin/env python2.7
+
+"""
+@package: pyHerkulex
+@name: herkulex.py
+@author: Achu Wilson (achuwilson@gmail.com), Akhil Chandran  (akhilchandran.t.r@gmail.com)
+@version: 0.1
+
+This is a python library for interfacing the Herkulex range of smart 
+servo motors manufactured by Dongbu Robotics.
+
+The library was created by Achu Wilson (mailto:achu@sastrarobotics.com) 
+for the internal projects of Sastra Robotics
+
+This free software is distributed under the GNU General Public License.
+See http://www.gnu.org/licenses/gpl.html for details.
+
+For usage of this code for  commercial purposes contact Sastra Robotics 
+India Pvt. Ltd. (mailto:contact@sastrarobotics.com)
+
+
+""" 
+import time
+try:
+    # PySerial Module
+    import serial
+except:
+    raise ImportError("couldnt find pySerial")
+
+
+# Commands
+EEP_WRITE_REQ = 0x01
+EEP_READ_REQ = 0x02
+RAM_WRITE_REQ = 0x03
+RAM_READ_REQ = 0x04
+I_JOG_REQ = 0x05
+S_JOG_REQ = 0x06
+STAT_REQ = 0x07
+ROLLBACK_REQ = 0x08
+REBOOT_REQ = 0x09
+
+EEP_WRITE_ACK = 0x41
+EEP_READ_ACK = 0x42
+RAM_WRITE_ACK = 0x43
+RAM_READ_ACK = 0x44
+I_JOG_ACK = 0x45
+S_JOG_ACK = 0x46
+STAT_ACK = 0x47
+ROLLBACK_ACK = 0x48
+REBOOT_ACK = 0x49
+
+
+#Addresses
+MODEL_NO1_EEP = 0
+MODEL_NO2_EEP = 1
+VERSION1_EEP = 2
+VERSION2_EEP = 3
+BAUD_RATE_EEP = 4
+SERVO_ID_EEP = 6
+SERVO_ID_RAM = 0
+ACK_POLICY_EEP = 7
+ACK_POLICY_RAM = 1
+ALARM_LED_POLICY_EEP = 8
+ALARM_LED_POLICY_RAM = 2
+TORQUE_POLICY_EEP = 9
+TORQUE_POLICY_RAM = 3
+MAX_TEMP_EEP = 11
+MAX_TEMP_RAM = 5
+MIN_VOLTAGE_EEP = 12
+MIN_VOLTAGE_RAM = 6
+MAX_VOLTAGE_EEP = 13
+MAX_VOLTAGE_RAM = 7
+ACCELERATION_RATIO_EEP = 14
+ACCELERATION_RATIO_RAM = 8
+MAX_ACCELERATION_TIME_EEP = 15
+MAX_ACCELERATION_TIME_RAM = 9
+DEAD_ZONE_EEP = 16
+DEAD_ZONE_RAM = 10
+SATURATOR_OFFSET_EEP = 17
+SATURATOR_OFFSET_RAM = 11
+SATURATOR_SLOPE_EEP = 18
+SATURATOR_SLOPE_RAM = 12
+PWM_OFFSET_EEP = 20
+PWM_OFFSET_RAM = 14
+MIN_PWM_EEP = 21
+MIN_PWM_RAM = 15
+MAX_PWM_EEP = 22
+MAX_PWM_RAM = 16
+OVERLOAD_PWM_THRESHOLD_EEP = 24
+OVERLOAD_PWM_THRESHOLD_RAM = 18
+MIN_POSITION_EEP = 26
+MIN_POSITION_RAM = 20
+MAX_POSITION_EEP = 28
+MAX_POSITION_RAM = 22
+POSITION_KP_EEP = 30
+POSITION_KP_RAM = 24
+POSITION_KD_EEP = 32
+POSITION_KD_RAM = 26
+POSITION_KI_EEP = 34
+POSITION_KI_RAM =28
+POSITION_FEEDFORWARD_GAIN1_EEP = 36
+POSITION_FEEDFORWARD_GAIN1_RAM = 30
+POSITION_FEEDFORWARD_GAIN2_EEP = 38
+POSITION_FEEDFORWARD_GAIN2_RAM = 32
+VELOCITY_KP_EEP = 40
+VELOCITY_KP_RAM = 34
+VELOCITY_KI_EEP = 42
+VELOCITY_KI_RAM = 36
+LED_BLINK_PERIOD_EEP = 44
+LED_BLINK_PERIOD_RAM = 38
+ADC_FAULT_CHECK_PERIOD_EEP = 45
+ADC_FAULT_CHECK_PERIOD_RAM = 39
+PACKET_GARBAGE_CHECK_PERIOD_EEP = 46
+PACKET_GARBAGE_CHECK_PERIOD_RAM = 40
+STOP_DETECTION_PERIOD_EEP = 47
+STOP_DETECTION_PERIOD_RAM = 41
+OVERLOAD_DETECTION_PERIOD_EEP        = 48
+OVERLOAD_DETECTION_PERIOD_RAM        = 42
+STOP_THRESHOLD_EEP = 49
+STOP_THRESHOLD_RAM = 43
+INPOSITION_MARGIN_EEP = 50
+INPOSITION_MARGIN_RAM = 44
+CALIBRATION_DIFF_LOW_EEP = 52
+CALIBRATION_DIFF_LOW_RAM = 46
+CALIBRATION_DIFF_UP_EEP = 53
+CALIBRATION_DIFF_UP_RAM = 47
+STATUS_ERROR_RAM = 48
+STATUS_DETAIL_RAM = 49
+AUX1_RAM = 50
+TORQUE_CONTROL_RAM = 52
+LED_CONTROL_RAM = 53
+VOLTAGE_RAM = 54
+TEMPERATURE_RAM = 55
+CURRENT_CONTROL_MODE_RAM = 56
+TICK_RAM = 57
+CALIBRATED_POSITION_RAM = 58
+ABSOLUTE_POSITION_RAM = 60
+DIFFERENTIAL_POSITION_RAM = 62
+PWM_RAM = 64
+ABSOLUTE_SECOND_POSITION_RAM = 66
+ABSOLUTE_GOAL_POSITION_RAM = 68
+ABSOLUTE_DESIRED_TRAJECTORY_POSITION = 70
+DESIRED_VELOCITY_RAM = 72
+
+BYTE1 = 0x01
+BYTE2 = 0x02
+
+BROADCAST_ID = 0xFE
+
+SERPORT = None
+
+def connect(portname, baudrate):
+    """ Connect to the Herkulex bus
+
+    Connect to serial port to which Herkulex Servos are attatched
+
+    Args:
+        portname (str): The serial port name
+        baudrate (int): The serial port baudrate
+    Raises:
+        SerialException: Error occured while opening serial port
+    """
+    global SERPORT
+    try:
+        SERPORT = serial.Serial(portname, baudrate, timeout = 0.1)
+
+    except:
+        raise HerkulexError("could not open the serial port")
+
+def close():
+    """ Close the Serial port
+
+    Properly close the serial port before exiting the application
+
+    Raises:
+        SerialException: Error occured while closing serial port
+    """
+    try:
+        SERPORT.close()
+    except:
+        raise HerkulexError("could not close the serial port")
+
+
+def checksum1(data, stringlength):
+    """ Calculate Checksum 1
+
+    Calculate the ckecksum 1 required for the herkulex data packet
+
+    Args:
+        data (list): the data of which checksum is to be calculated
+        stringlength (int): the length of the data
+
+    Returns:
+        int:  The calculated checksum 1
+    """
+    value_buffer = 0
+    for count in range(0, stringlength):
+        value_buffer = value_buffer ^ data[count]
+    return value_buffer&0xFE
+
+def checksum2(data):
+    """ Calculate Checksum 2
+
+    Calculate the ckecksum 2 required for the herkulex data packet
+
+    Args:
+        data (int): the data of which checksum is to be calculated
+
+    Returns:
+        int:  The calculated checksum 2
+    """
+    return (~data)&0xFE
+
+
+
+def send_data(data):
+    """ Send data to herkulex
+
+    Paketize & write the packet to serial port
+
+    Args:
+        data (list): the data to be sent
+
+    Raises:
+        SerialException: Error occured while opening serial port
+    """
+    datalength = len(data)
+    csm1 = checksum1(data, datalength)
+    csm2 = checksum2(csm1)
+    data.insert(0, 0xFF)
+    data.insert(1, 0xFF)
+    data.insert(5, csm1)
+    data.insert(6, csm2)
+    stringtosend = ""
+    for i in range(len(data)):
+        byteformat = '%02X' % data[i]
+        stringtosend = stringtosend + "\\x" + byteformat
+
+    try:
+
+        SERPORT.write(stringtosend.decode('string-escape'))
+        #print stringtosend
+
+    except:
+        raise HerkulexError("could not communicate with motors")
+
+
+def clear_errors():
+    """ Clears the errors register of all Herkulex servos
+
+    Args:
+        none
+
+    """
+    data = []
+    data.append(0x0B)
+    data.append(BROADCAST_ID)
+    data.append(RAM_WRITE_REQ)
+    data.append(STATUS_ERROR_RAM)
+    data.append(BYTE2)
+    data.append(0x00)
+    data.append(0x00)
+    send_data(data)
+
+def scale(input_value, input_min, input_max, out_min, out_max):
+    """ scale a value from one range to another
+    """
+    # Figure out how 'wide' each range is
+    input_span = input_max - input_min
+    output_span = out_max - out_min
+    # Convert the left range into a 0-1 range (float)
+    valuescaled = float(input_value - input_min) / float(input_span)
+    # Convert the 0-1 range into a value in the right range.
+    return out_min + (valuescaled * output_span)
+
+def scan_servos():
+
+    """Scan for the herkulex servos connected
+
+	This function will scan for all the herkulex servos connected
+	to the bus.
+
+	Args:
+	    none
+	Returns:
+	    list: a list of tuples of the form [(id, model)]
+	"""
+    servos = []
+    for servo_id in range(0x00, 0xFE):
+        model = get_model(servo_id)
+        if model:
+            servos += [(servo_id, model)]
+    return servos
+
+def get_model(servoid):
+    """ Get the servo model
+
+    This function gets the model of the herkules servo, provided its id
+
+    Args:
+        servoid(int): the id of the servo
+
+    Returns:
+        int:  an integer corresponding to the model number
+              0x06 for DRS-602
+              0x04 for DRS-402
+              0x02 for DRS-202
+    """
+    data = []
+    data.append(0x09)
+    data.append(servoid)
+    data.append(EEP_READ_REQ)
+    data.append(MODEL_NO1_EEP)
+    data.append(BYTE1)
+    send_data(data)
+    rxdata = []
+    try:
+        rxdata = SERPORT.read(12)
+        return ord(rxdata[9])&0xFF
+    except:
+        raise HerkulexError("could not communicate with motors")
+
+class servo:
+    """ The servo class
+
+    This class handles the interface to the herkulex smart servos
+
+    """
+
+
+    def __init__(self, servoid):
+        """ servo class initialization
+
+   	Args:
+   	    servoid(int): the id of the servo
+   	"""
+        self.servoid = servoid
+
+
+        self.servomodel = get_model(servoid):
+
+
+
+    def get_model(self):
+        """ Get the servo model
+
+        This function gets the model of the herkules servo, provided its id
+
+        Args:
+            none
+
+        Returns:
+            int:  an integer corresponding to the model number
+                  0x06 for DRS-602
+                  0x04 for DRS-402
+                  0x02 for DRS-202
+        """
+
+
+
+
+
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(EEP_READ_REQ)
+        data.append(MODEL_NO1_EEP)
+        data.append(BYTE1)
+        send_data(data)
+
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(12)
+            return ord(rxdata[9])&0xFF
+        except:
+            raise HerkulexError("could not communicate with motors")
+
+
+    def get_servo_status(self):
+        """ Get the error status of servo
+
+        This function gets the  error status (if any) of the servo
+
+        Args:
+            none
+
+        Returns:
+            int:  an integer corresponding to the servo status
+                   * refer datasheet
+
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(STATUS_ERROR_RAM)
+        data.append(BYTE1)
+        send_data(data)
+
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(12)
+            return ord(rxdata[9])&0xFF
+        except:
+            raise HerkulexError("could not communicate with motors")
+
+    def get_servo_status_detail(self):
+        """ Get the  detailed error status of servo
+
+        This function gets the  detailed error status (if any) of the servo
+
+        Args:
+            none
+
+        Returns:
+            int:  an integer corresponding to the servo status
+                   * refer datasheet
+
+        """
+
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(STATUS_DETAIL_RAM)
+        data.append(BYTE1)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(12)
+            return ord(rxdata[9])&0xFF
+        except HerkulexError:
+            raise HerkulexError("could not communicate with motors")
+
+    def  set_led(self, colorcode):
+        """ Set the LED Color of Herkulex
+
+        Args:
+            colorcode (int): The code for colors
+                            (0x00-OFF
+                             0x02-BLUE
+                             0x03-CYAN
+                             0x04-RED
+                             0x05-ORANGE
+                             0x06-VIOLET
+                             0x07-WHITE
+        """
+        data = []
+        data.append(0x0A)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(LED_CONTROL_RAM)
+        data.append(0x01)
+        data.append(colorcode)
+        send_data(data)
+
+    def brake_on(self):
+        """ Set the Brakes of Herkulex
+
+        In braked mode, position control and velocity control
+        will not work, enable torque before that
+
+        Args:
+            none
+        """
+        data = []
+        data.append(0x0A)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(TORQUE_CONTROL_RAM)
+        data.append(0x01)
+        data.append(0x40)
+        send_data(data)
+
+    def torque_off(self):
+        """ Set the torques of Herkulex to zero
+
+        In this mode, position control and velocity control
+        will not work, enable torque before that. Also the
+        servo shaft is freely movable
+
+        Args:
+            none
+        """
+        data = []
+        data.append(0x0A)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(TORQUE_CONTROL_RAM)
+        data.append(0x01)
+        data.append(0x00)
+        send_data(data)
+
+    def torque_on(self):
+        """ Enable the torques of Herkulex
+
+        In this mode, position control and velocity control
+        will work.
+
+        Args:
+            none
+        """
+        data = []
+        data.append(0x0A)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(TORQUE_CONTROL_RAM)
+        data.append(0x01)
+        data.append(0x60)
+        send_data(data)
+
+    def get_torque_state(self):
+        """ get the torque state of motor
+
+        Returns:
+            bool: True if torque is enabled, else False
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(TORQUE_CONTROL_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            return bool(ord(rxdata[9]))
+        except HerkulexError:
+            raise HerkulexError("could not communicate with motors")
+
+    def set_servo_position(self, goalposition, goaltime, led):
+        """ Set the position of Herkulex
+
+        Enable torque using torque_on function before calling this
+
+        Args:
+
+            goalposition (int): The desired position, min-0 & max-1023
+            goaltime (int): the time taken to move from present
+             position to goalposition
+            led (int): the LED color
+                       0x00 LED off
+                       0x04 GREEN
+                       0x08 BLUE
+                       0x10 RED
+        """
+        goalposition_msb = int(goalposition) >> 8
+        goalposition_lsb = int(goalposition) & 0xff
+
+        data = []
+        data.append(0x0C)
+        data.append(self.servoid)
+        data.append(I_JOG_REQ)
+        data.append(goalposition_lsb)
+        data.append(goalposition_msb)
+        data.append(led)
+        data.append(self.servoid)
+        data.append(goaltime)
+        send_data(data)
+
+    def get_servo_position(self):
+        """ Gets the current position of Herkulex
+
+        Args:
+            none
+
+        Returns:
+            int: position of the servo- 0 to 1023
+
+        Raises:
+            SerialException: Error occured while opening serial port
+
+        """
+        #global SERPORT
+
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(CALIBRATED_POSITION_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            if (self.servomodel==0x06) or (self.servomodel == 0x04):
+                return ((ord(rxdata[10])&0xff)<<8) | (ord(rxdata[9])&0xFF)
+            else:
+                #print ord(rxdata[9]),ord(rxdata[10])
+                return ((ord(rxdata[10])&0x03)<<8) | (ord(rxdata[9])&0xFF)
+
+        except HerkulexError:
+            print "Could not read from the servos. Check connection"
+
+    def get_servo_temperature(self):
+        """ Gets the current temperature of Herkulex
+
+        Args:
+            none
+
+        Returns:
+            int: the current temperature register of Herkulex
+
+        Raises:
+            SerialException: Error occured while opening serial port
+
+       """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(TEMPERATURE_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            return ord(rxdata[9])
+        except HerkulexError:
+            raise HerkulexError("Could not communicate with motors")
+
+    def get_servo_torque(self):
+        """ Gets the current torque of Herkulex
+
+        Gives the current load on the servo shaft.
+        It is actually the PWM value to the motors
+
+        Args:
+            none
+
+        Returns:
+            int: the torque on servo shaft. range from -1023 to 1023
+
+        Raises:
+            SerialException: Error occured while opening serial port
+
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(PWM_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            if ord(rxdata[10])<=127:
+                return ((ord(rxdata[10])&0x03)<<8) | (ord(rxdata[9])&0xFF)
+            else:
+                return (ord(rxdata[10])-0xFF)*0xFF + (ord(rxdata[9])&0xFF)-0xFF
+        except HerkulexError:
+            raise HerkulexError("could not communicate with motors")
+
+    def set_servo_speed(self, goalspeed, led):
+        """ Set the Herkulex in continuous rotation mode
+
+        Args:
+
+            goalspeed (int): the speed , range -1023 to 1023
+            led (int): the LED color
+                       0x00 LED off
+                       0x04 GREEN
+                       0x08 BLUE
+                       0x10 RED
+
+        """
+        if goalspeed>0 :
+            goalspeed_msb = (int(goalspeed)& 0xFF00) >> 8
+            goalspeed_lsb = int(goalspeed) & 0xff
+        elif goalspeed<0 :
+            goalspeed_msb = 64+(255- ((int(goalspeed)& 0xFF00) >> 8))
+            goalspeed_lsb = (abs(goalspeed) & 0xff)
+
+        #print goalspeed_msb,goalspeed_lsb
+        data = []
+        data.append(0x0C)
+        data.append(self.servoid)
+        data.append(I_JOG_REQ)
+        data.append(goalspeed_lsb)
+        data.append(goalspeed_msb)
+        data.append(0x02|led)
+        data.append(self.servoid)
+        data.append(0x00)
+        send_data(data)
+
+    def set_position_p(self, pvalue):
+        """ Set the P gain of the  position PID
+
+        Args:
+
+            pvalue (int): P value
+        """
+        pvalue_msb = int(pvalue) >> 8
+        pvalue_lsb = int(pvalue) & 0xff
+        data = []
+        data.append(0x0B)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(POSITION_KP_RAM)
+        data.append(BYTE2)
+        data.append( pvalue_lsb)
+        data.append( pvalue_msb)
+        send_data(data)
+
+    def set_position_i(self, ivalue):
+        """ Set the I gain of the position PID
+
+        Args:
+            ivalue (int): I value
+        """
+        ivalue_msb = int(ivalue) >> 8
+        ivalue_lsb = int(ivalue) & 0xff
+
+        data = []
+        data.append(0x0B)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(POSITION_KI_RAM)
+        data.append(BYTE2)
+        data.append(ivalue_lsb)
+        data.append(ivalue_msb)
+        send_data(data)
+
+    def set_position_d(self, dvalue):
+        """ Set the D gain of the PID
+
+        Args:
+            dvalue (int): D value
+        """
+        dvalue_msb = int(dvalue) >> 8
+        dvalue_lsb = int(dvalue) & 0xff
+        data = []
+        data.append(0x0B)
+        data.append(self.servoid)
+        data.append(RAM_WRITE_REQ)
+        data.append(POSITION_KD_RAM)
+        data.append(BYTE2)
+        data.append(dvalue_lsb)
+        data.append(dvalue_msb)
+        send_data(data)
+
+    def get_position_p(self):
+        """ Get the P value of the current PID for position
+
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(POSITION_KP_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            return (ord(rxdata[10])*256)+(ord(rxdata[9])&0xff)
+        except HerkulexError:
+            raise HerkulexError("could not communicate with motors")
+
+    def get_position_i(self):
+        """ Get the I value of the current PID for position
+
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(POSITION_KI_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            return (ord(rxdata[10])*256)+(ord(rxdata[9])&0xff)
+        except HerkulexError:
+            raise HerkulexError("Could not read from motors")
+
+    def get_position_d(self):
+        """ Get the D value of the current PID for position
+
+        """
+        data = []
+        data.append(0x09)
+        data.append(self.servoid)
+        data.append(RAM_READ_REQ)
+        data.append(POSITION_KD_RAM)
+        data.append(BYTE2)
+        send_data(data)
+        rxdata = []
+        try:
+            rxdata = SERPORT.read(13)
+            return (ord(rxdata[10])*256)+(ord(rxdata[9])&0xff)
+        except HerkulexError:
+            raise HerkulexError("could not communicate with motors")
+
+    def save_pid_eeprom(self):
+        """ saves the PID values from RAM to EEPROM
+
+        """
+        pval = self.get_position_p()
+        ival = self.get_position_i()
+        dval = self.get_position_d()
+
+        #write P value
+        pvalue_msb = int(pval) >> 8
+        pvalue_lsb = int(pval) & 0xff
+
+        data_p = []
+        data_p.append(0x0B)
+        data_p.append(self.servoid)
+        data_p.append(EEP_WRITE_REQ)
+        data_p.append(POSITION_KP_EEP)
+        data_p.append(BYTE2)
+        data_p.append( pvalue_lsb)
+        data_p.append( pvalue_msb)
+        send_data(data_p)
+
+        # write I value
+        ivalue_msb = int(ival) >> 8
+        ivalue_lsb = int(ival) & 0xff
+
+        data_i = []
+        data_i.append(0x0B)
+        data_i.append(self.servoid)
+        data_i.append(EEP_WRITE_REQ)
+        data_i.append(POSITION_KI_EEP)
+        data_i.append(BYTE2)
+        data_i.append( ivalue_lsb)
+        data_i.append( ivalue_msb)
+        send_data(data_i)
+
+        # write D value
+        dvalue_msb = int(dval) >> 8
+        dvalue_lsb = int(dval) & 0xff
+
+        data_d = []
+        data_d.append(0x0B)
+        data_d.append(self.servoid)
+        data_d.append(EEP_WRITE_REQ)
+        data_d.append(POSITION_KD_EEP)
+        data_d.append(BYTE2)
+        data_d.append( dvalue_lsb)
+        data_d.append( dvalue_msb)
+        send_data(data_d)
+
+    def set_servo_angle(self, goalangle, goaltime, led):
+        """ Sets the servo angle (in degrees)
+
+        Enable torque using torque_on function before calling this
+
+        Args:
+            goalangle (int): The desired angle in degrees, range -150 to 150
+            goaltime (int): the time taken to move from present
+             position to goalposition
+            led (int): the LED color
+                       0x00 LED off
+                       0x04 GREEN
+                       0x08 BLUE
+                       0x10 RED
+        """
+        if (self.servomodel==0x06) or (self.servomodel == 0x04):
+            goalposition = scale(goalangle, -159.9, 159.6, 10627, 22129)
+        else:
+            goalposition = scale(goalangle, -150, 150, 21, 1002)
+
+        self.set_servo_position(goalposition, goaltime, led)
+
+    def get_servo_angle(self):
+        """ Gets the current angle of the servo in degrees
+
+        Args:
+            none
+        Returns:
+            int : the current servo angle
+        """
+
+        servoposition =  self.get_servo_position()
+        if (self.servomodel==0x06) or (self.servomodel == 0x04):
+            return scale(servoposition, 10627, 22129, -159.9, 159.6)
+        else:
+            return scale(servoposition, 21, 1002, -150, 150)
+
+class HerkulexError(Exception):
+    """ Class to handle sservo errors
+    """
+    def __init__(self,  message):
+        super(HerkulexError, self).__init__(message)
+        self.message = message
+
+
