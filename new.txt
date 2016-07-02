@@ -1,3 +1,23 @@
 print('Python', python_version())
 https://www.baldengineer.com/raspberry-pi-gui-tutorial.html
 https://www.youtube.com/watch?v=Dmo8eZG5I2w
+
+import serial
+import time
+
+
+def readlineCR(port):
+    rv = ""
+    while True:
+    ch = port.read()
+    rv += ch
+    if ch == '\r' or ch == '':
+         return rv
+
+
+port = serial.Serial("/dev/ttyAMA0", baudrate = 7200, timeout = 2)
+
+while True: 
+     rcv = readlineCR(port)
+     port.write("I typed: " + repr(rcv))
+     print(rcv)
