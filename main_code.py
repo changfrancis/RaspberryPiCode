@@ -9,7 +9,7 @@
 # pw: 8524879j
 
 from Tkinter import *
-import datetime, time, sys, thread, threading, signal, atexit
+import datetime, time, sys, thread, threading, signal, atexit, serial
 import numpy as np
 from time import sleep
 from scipy.interpolate import spline
@@ -69,6 +69,18 @@ if __name__ == "__main__":
 		motor_step_pin = 19
 		motor_enable_pin = 13
 
+		#/dev/ttyAMA0
+		ser = serial.Serial("/dev/serial0", 9600, timeout=1)
+		ser.close()
+		ser.open()
+		ser.flush()
+		'''ser = serial.Serial(port='/dev/ttyAMA0',
+		baudrate=9600,
+		parity=serial.PARITY_NONE, 
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=1)
+		'''
 		#Configuration of Pin IO
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False) #disable warning
@@ -123,7 +135,7 @@ if __name__ == "__main__":
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
 		aircon_output.aircon_enabled = 1 #enable power to pin
 		coldblock_output.coldblock_enabled = 1 #enable power to pin
-		hotend_output.hotend_enabled = 1 #enable power to pin
+		hotend_output.hotend_enabled = 0 #enable power to pin
 		stepper_output.motor_enabled = 1 #enable power to pin
 
 		time.sleep(0.8)
@@ -143,14 +155,23 @@ if __name__ == "__main__":
 			#print("AC = %.1f" %sensors.adc1_temp_cur + "C")
 			#print("ColdBlock = %.1f" %sensors.adc2_temp_cur + "C")
 			#print("HotEnd = %.1f" %sensors.adc3_temp_cur + "C")
+			#print('hello world1')
+			#ser.write("dadasdada\n")
+			#data = ser.read(10)
+			#print('hellodasdasdasdasdasdadsworld2')
 			time.sleep(1)
 		except KeyboardInterrupt:
 			print("\n\n\nKeyboard Shutdown")
 			exitProgram()
 			break
-		except IOError:
-			print("Error")
+		except IOError, e:
+			print(str(e))
+			print("\n\n\nError")
+			IOError
 			exitProgram()
+		except Exception, e:
+			print(str(e))
+
 	GPIO.cleanup()
 '''
 	root = Tk()
