@@ -23,6 +23,8 @@ import aircon_output
 import coldblock_output
 import stepper_output
 import hotend_output
+import herkulex
+from herkulex import servo
 
 # Exit handlers
 def exitProgram():
@@ -69,18 +71,13 @@ if __name__ == "__main__":
 		motor_step_pin = 19
 		motor_enable_pin = 13
 
-		#/dev/ttyAMA0
-		ser = serial.Serial("/dev/serial0", 9600, timeout=1)
-		ser.close()
-		ser.open()
-		ser.flush()
-		'''ser = serial.Serial(port='/dev/ttyAMA0',
-		baudrate=9600,
-		parity=serial.PARITY_NONE, 
-		stopbits=serial.STOPBITS_ONE,
-		bytesize=serial.EIGHTBITS,
-		timeout=1)
-		'''
+		#Servo Motor Configuration
+		herkulex.connect("/dev/ttyS0", 115200)
+		servos = herkulex.scan_servos(0x01,0x02) #min and max range 
+		print(servos)
+		servo1 = servo(1)
+		servo1.set_led(0x00)
+		servo1.set_servo_angle(50, 255, 0x00) #goaltime is 1 to 255
 		#Configuration of Pin IO
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False) #disable warning
@@ -103,9 +100,9 @@ if __name__ == "__main__":
 		heater = GPIO.PWM(heaterpin, 50)
 		heater.start(0)
 		time.sleep(0.1)
-		
+		#Fans
 		grovepi.analogWrite(peltierfanpin1,0) #aircon, 0-255
-		grovepi.analogWrite(peltierfanpin2,255) #coldblock, 0-255
+		grovepi.analogWrite(peltierfanpin2,0) #coldblock, 0-255
 		
 		#Starting Individual Thread
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
@@ -155,8 +152,6 @@ if __name__ == "__main__":
 			#print("AC = %.1f" %sensors.adc1_temp_cur + "C")
 			#print("ColdBlock = %.1f" %sensors.adc2_temp_cur + "C")
 			#print("HotEnd = %.1f" %sensors.adc3_temp_cur + "C")
-			#print('hello world1')
-			#ser.write("dadasdada\n")
 			#data = ser.read(10)
 			#print('hellodasdasdasdasdasdadsworld2')
 			time.sleep(1)
