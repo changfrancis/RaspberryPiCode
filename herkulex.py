@@ -120,7 +120,6 @@ BYTE1 = 0x01
 BYTE2 = 0x02
 
 BROADCAST_ID = 0xFE
-
 SERPORT = None
 
 def connect(portname, baudrate):
@@ -134,7 +133,7 @@ def connect(portname, baudrate):
     """
     global SERPORT
     try:
-        SERPORT = serial.Serial(portname, baudrate, timeout = 1)
+		SERPORT = serial.Serial(portname, baudrate, timeout = 2.0)
     except:
         raise HerkulexError("could not open the serial port")
 
@@ -150,7 +149,6 @@ def close():
         SERPORT.close()
     except:
         raise HerkulexError("could not close the serial port")
-
 
 def checksum1(data, stringlength):
     """ Calculate Checksum 1
@@ -171,18 +169,13 @@ def checksum1(data, stringlength):
 
 def checksum2(data):
     """ Calculate Checksum 2
-
     Calculate the ckecksum 2 required for the herkulex data packet
-
     Args:
         data (int): the data of which checksum is to be calculated
-
     Returns:
         int:  The calculated checksum 2
     """
     return (~data)&0xFE
-
-
 
 def send_data(data):
     """ Send data to herkulex
@@ -207,13 +200,11 @@ def send_data(data):
         byteformat = '%02X' % data[i]
         stringtosend = stringtosend + "\\x" + byteformat
     try:
-
         SERPORT.write(stringtosend.decode('string-escape'))
         #print stringtosend
-
+        #time.sleep(0.01)
     except:
         raise HerkulexError("could not communicate with motors")
-
 
 def clear_errors():
     """ Clears the errors register of all Herkulex servos
@@ -284,22 +275,15 @@ def get_model(servoid):
 
 class servo:
     """ The servo class
-
     This class handles the interface to the herkulex smart servos
-
     """
-
-
-    def __init__(self, servoid):
-        """ servo class initialization
-
+    def __init__(self, servoid, model):
+	""" servo class initialization
    	Args:
    	    servoid(int): the id of the servo
    	"""
         self.servoid = servoid
-        self.servomodel = get_model(servoid)
-
-
+        self.servomodel = model
 
     def get_model(self):
         """ Get the servo model
@@ -341,7 +325,6 @@ class servo:
         Returns:
             int:  an integer corresponding to the servo status
                    * refer datasheet
-
         """
         data = []
         data.append(0x09)
@@ -447,10 +430,8 @@ class servo:
 
     def torque_on(self):
         """ Enable the torques of Herkulex
-
         In this mode, position control and velocity control
         will work.
-
         Args:
             none
         """
@@ -800,9 +781,7 @@ class servo:
 
     def set_servo_angle(self, goalangle, goaltime, led):
         """ Sets the servo angle (in degrees)
-
         Enable torque using torque_on function before calling this
-
         Args:
             goalangle (int): The desired angle in degrees, range -150 to 150
             goaltime (int): the time taken to move from present
@@ -817,7 +796,6 @@ class servo:
             goalposition = scale(goalangle, -159.9, 159.6, 10627, 22129)
         else:
             goalposition = scale(goalangle, -150, 150, 21, 1002)
-
         self.set_servo_position(goalposition, goaltime, led)
 
     def get_servo_angle(self):

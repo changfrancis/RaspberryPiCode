@@ -14,7 +14,7 @@ def run(peltierpin1, peltier1):
 	aircon_pwm = 0
 	peltier1.start(0)
 	airconPID = PIDclass(18,6,5) #init P I D value
-	airconPID.SetPoint = 30.0 #target temperature in degree
+	airconPID.SetPoint = 35.0 #target temperature in degree
 	airconPID.setSampleTime(0)
 	print("Aircon PID ... Started")
 	next_call = time.time()
@@ -29,11 +29,16 @@ def run(peltierpin1, peltier1):
 			aircon_pwm = 0
 		else:
 			aircon_pwm = buf
-		if(aircon_enabled):
-			peltier1.start(aircon_pwm)
-			print("Aircon Temp = %.1fC PeltierOutput = %.1f" %(sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+		if(sensors.adc1_temp_cur <= -900):
+			print("Error: Run away thermistor - Aircon")
+			aircon_enabled = 0
+			airconPID.clear()
 		else:
-			peltier1.start(0)
+			if(aircon_enabled):
+				peltier1.start(aircon_pwm)
+				print("Aircon Temp = %.1fC PeltierOutput = %.1f" %(sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+			else:
+				peltier1.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	

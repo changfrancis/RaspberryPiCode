@@ -29,11 +29,16 @@ def run(heaterpin, heater):
 			hotend_pwm = 0
 		else:
 			hotend_pwm = buf
-		if(hotend_enabled):
-			heater.start(hotend_pwm)
-			print("Hotend Temp = %.1fC HeaterOutput = %.1f" %(sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+		if(sensors.adc3_temp_cur <= -900):
+			print("Error: Run away thermistor - Hotend")
+			hotend_enabled = 0
+			hotendPID.clear()
 		else:
-			heater.start(0)
+			if(hotend_enabled):
+				heater.start(hotend_pwm)
+				print("Hotend Temp = %.1fC HeaterOutput = %.1f" %(sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+			else:
+				heater.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	

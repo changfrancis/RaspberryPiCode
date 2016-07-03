@@ -73,11 +73,18 @@ if __name__ == "__main__":
 
 		#Servo Motor Configuration
 		herkulex.connect("/dev/ttyS0", 115200)
-		servos = herkulex.scan_servos(0x01,0x02) #min and max range 
-		print(servos)
-		servo1 = servo(1)
-		servo1.set_led(0x00)
-		servo1.set_servo_angle(50, 255, 0x00) #goaltime is 1 to 255
+		herkulex.clear_errors()
+		#servos = herkulex.scan_servos(0x01,0x02) #min and max range of ServoID
+		#print(servos)
+		servo1=servo(0x01,0x02) #ServoID, Model
+		servo1.torque_on()
+		servo1.set_led(0x02)
+		servo2=servo(0x02,0x02) #ServoID, Model
+		servo2.torque_on()
+		servo3=servo(0x03,0x02) #ServoID, Model
+		servo3.torque_on()
+		#servo1.set_servo_angle(50, 1, 0x00) #goaltime is 1 to 255
+		time.sleep(0.1)
 		#Configuration of Pin IO
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False) #disable warning
@@ -132,7 +139,7 @@ if __name__ == "__main__":
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
 		aircon_output.aircon_enabled = 1 #enable power to pin
 		coldblock_output.coldblock_enabled = 1 #enable power to pin
-		hotend_output.hotend_enabled = 0 #enable power to pin
+		hotend_output.hotend_enabled = 1 #enable power to pin
 		stepper_output.motor_enabled = 1 #enable power to pin
 
 		time.sleep(0.8)
@@ -154,7 +161,26 @@ if __name__ == "__main__":
 			#print("HotEnd = %.1f" %sensors.adc3_temp_cur + "C")
 			#data = ser.read(10)
 			#print('hellodasdasdasdasdasdadsworld2')
+			servo1.torque_on()
+			servo1.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
+			servo2.torque_on()
+			servo2.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
+			servo3.torque_on()
+			servo3.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
 			time.sleep(1)
+			herkulex.clear_errors()
+			servo1.torque_on()
+			servo1.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
+			servo2.torque_on()
+			servo2.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
+			servo3.torque_on()
+			servo3.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
+			time.sleep(1)
+			herkulex.clear_errors()
+			#print(servo1.get_servo_status_detail())
+			#print(servo2.get_servo_status_detail())
+			#print(servo3.get_servo_status_detail())
+			
 		except KeyboardInterrupt:
 			print("\n\n\nKeyboard Shutdown")
 			exitProgram()

@@ -17,7 +17,7 @@ def run(dir_pin, step_pin, enable_pin):
 	next_call = time.time()
 	while True:	
 		if(motor_enabled):
-			motor.do_step(100,100)
+			motor.do_step(200,100)
 		next_call = next_call + 2
 		time.sleep(next_call - time.time())
 		
@@ -65,9 +65,9 @@ class Stepper:
         #print(steps_to_turn)
         for i in range (1, steps_to_turn):
 			GPIO.output(self.step_pin,1) 
-			time.sleep(0.005) 
+			time.sleep(0.0025) 
 			GPIO.output(self.step_pin,0)
-			time.sleep(0.005)  
+			time.sleep(0.0025)  
         '''
         if self.dir == 0:
             return

@@ -14,7 +14,7 @@ def run(peltierpin2, peltier2):
 	coldblock_pwm = 0
 	peltier2.start(0)
 	coldblockPID = PIDclass(15,5,10) #init P I D value
-	coldblockPID.SetPoint = 30.0 #target temperature in degree
+	coldblockPID.SetPoint = 35.0 #target temperature in degree
 	coldblockPID.setSampleTime(0)
 	print("Coldblock PID ... Started")
 	next_call = time.time()
@@ -29,11 +29,16 @@ def run(peltierpin2, peltier2):
 			coldblock_pwm = 0
 		else:
 			coldblock_pwm = buf
-		if(coldblock_enabled):
-			peltier2.start(coldblock_pwm)
-			print("ColdblockTemp = %.1fC PeltierOutput = %.1f" %(sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
+		if(sensors.adc2_temp_cur <= -900):
+			print("Error: Run away thermistor - ColdBlock")
+			coldblock_enabled = 0
+			coldblockPID.clear()
 		else:
-			peltier2.start(0)
+			if(coldblock_enabled):
+				peltier2.start(coldblock_pwm)
+				print("ColdblockTemp = %.1fC PeltierOutput = %.1f" %(sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
+			else:
+				peltier2.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	
