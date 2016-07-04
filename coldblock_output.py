@@ -39,7 +39,7 @@ def run(peltierpin2, peltier2, peltierfanpin2):
 			if(coldblock_enabled):
 				peltier2.start(coldblock_pwm)
 				grovepi.analogWrite(peltierfanpin2,250) #full
-				print("ColdblockTemp = Tar:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(coldblock_setpoint,sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
+				print("ColdblockTemp = Tgt:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(coldblock_setpoint,sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
 			else:
 				peltier2.start(0)
 				if(sensors.adc2_temp_cur <= 25.0): #dew point

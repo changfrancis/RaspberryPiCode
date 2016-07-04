@@ -27,6 +27,8 @@ class Ui_labelWindow(object):
 		self.motor_step_pin = _motor_step_pin
 		self.motor_dir_pin = _motor_dir_pin
 		self.motor_enable_pin = _motor_enable_pin
+		self.motorStart = 0
+		self.motorDirection = 1
 		
 	def updateTemperaturelabel(self):
 		while True:
@@ -37,6 +39,15 @@ class Ui_labelWindow(object):
 	
 	def updateSetpoint_all_threads(self):
 			print("update set point")
+	
+	def function_Exit(self):
+		self.function_Estop()
+		sensors.ambience_sensor_enabled = 0 
+		sensors.adc1_sensor_enabled = 0 
+		sensors.adc2_sensor_enabled = 0 
+		sensors.adc3_sensor_enabled = 0 
+		time.sleep(1.5)
+		sys.exit()
 	
 	def function_scrollFilament(self):
 		buf = self.scrollFilament.value()/100.0
@@ -62,22 +73,48 @@ class Ui_labelWindow(object):
 		hotend_output.hotend_setpoint = buf
 	
 	def function_ONaircon(self):
+		self.lcdAircon.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
 		aircon_output.aircon_enabled = 1 
 		
 	def function_OFFaircon(self):
+		self.lcdAircon.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
 		aircon_output.aircon_enabled = 0 	
 	
 	def function_ONcoldblock(self):
+		self.lcdcoldblock.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
 		coldblock_output.coldblock_enabled = 1 	
 	
 	def function_OFFcoldblock(self):
+		self.lcdcoldblock.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
 		coldblock_output.coldblock_enabled = 0 	
 		
 	def function_ONhotend(self):
+		self.lcdHotend.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
 		hotend_output.hotend_enabled = 1 	
 	
 	def function_OFFhotend(self):
+		self.lcdHotend.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
 		hotend_output.hotend_enabled = 0 	
+		
+	def function_motorStart(self):
+		if(self.motorStart == 0):
+			self.motorStart = 1
+			print("on")
+			self.btnmotorStart.setStyleSheet("background-color: rgb(0,0,255);") #b,g,r format
+			self.btnmotorStart.setText("Stop")
+		elif(self.motorStart == 1):
+			self.motorStart = 0
+			print("off")
+			self.btnmotorStart.setStyleSheet("background-color: rgb(0,255,0);")
+			self.btnmotorStart.setText("Start")
+		
+	def function_Direction(self):
+		self.motorDirection = not(self.motorDirection) 
+		print(self.motorDirection)	
+		if(self.motorDirection):
+			self.btnDirection.setText("Forward")
+		else:
+			self.btnDirection.setText("Reverse")
 	
 	def function_Estop(self):
 		try: 
@@ -318,21 +355,21 @@ class Ui_labelWindow(object):
 		font.setWeight(50)
 		self.btnONAircon.setFont(font)
 		self.btnONAircon.setObjectName("btnONAircon")
-		self.btnRetract = QtWidgets.QPushButton(self.boxSetTarget)
-		self.btnRetract.setGeometry(QtCore.QRect(170, 570, 140, 120))
+		self.btnDirection = QtWidgets.QPushButton(self.boxSetTarget)
+		self.btnDirection.setGeometry(QtCore.QRect(170, 570, 140, 120))
 		font = QtGui.QFont()
 		font.setPointSize(25)
-		self.btnRetract.setFont(font)
-		self.btnRetract.setObjectName("btnRetract")
-		self.btnExtrude = QtWidgets.QPushButton(self.boxSetTarget)
-		self.btnExtrude.setGeometry(QtCore.QRect(10, 570, 140, 120))
+		self.btnDirection.setFont(font)
+		self.btnDirection.setObjectName("btnDirection")
+		self.btnmotorStart = QtWidgets.QPushButton(self.boxSetTarget)
+		self.btnmotorStart.setGeometry(QtCore.QRect(10, 570, 140, 120))
 		font = QtGui.QFont()
 		font.setPointSize(25)
-		self.btnExtrude.setFont(font)
-		self.btnExtrude.setAutoDefault(False)
-		self.btnExtrude.setDefault(False)
-		self.btnExtrude.setFlat(False)
-		self.btnExtrude.setObjectName("btnExtrude")
+		self.btnmotorStart.setFont(font)
+		self.btnmotorStart.setAutoDefault(False)
+		self.btnmotorStart.setDefault(False)
+		self.btnmotorStart.setFlat(False)
+		self.btnmotorStart.setObjectName("btnmotorStart")
 		self.btnOFFAircon = QtWidgets.QPushButton(self.boxSetTarget)
 		self.btnOFFAircon.setGeometry(QtCore.QRect(260, 180, 50, 40))
 		font = QtGui.QFont()
@@ -432,22 +469,32 @@ class Ui_labelWindow(object):
 		
 		#My code for functions
 		self.btnEstop.clicked.connect(self.function_Estop)
+		self.btnEstop.setStyleSheet("background-color: rgb(0,0,255);")
 		self.btnONAircon.clicked.connect(self.function_ONaircon)
 		self.btnOFFAircon.clicked.connect(self.function_OFFaircon)
 		self.btnONColdblock.clicked.connect(self.function_ONcoldblock)
 		self.btnOFFColdblock.clicked.connect(self.function_OFFcoldblock)
 		self.btnONHotend.clicked.connect(self.function_ONhotend)
 		self.btnOFFHotend.clicked.connect(self.function_OFFhotend)
+		self.btnmotorStart.clicked.connect(self.function_motorStart)
+		self.btnmotorStart.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
+		self.btnDirection.clicked.connect(self.function_Direction)
 		self.scrollFilament.valueChanged.connect(self.function_scrollFilament)
 		self.scrollAircon.valueChanged.connect(self.function_scrollAircon)
 		self.scrollColdblock.valueChanged.connect(self.function_scrollColdblock)
 		self.scrollHotend.valueChanged.connect(self.function_scrollHotend)
 		self.scrollFeedrate.valueChanged.connect(self.function_scrollFeedrate)
+		self.actionExit.triggered.connect(self.function_Exit)
+		self.lcdAircon.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
+		self.lcdcoldblock.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
+		self.lcdHotend.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
+		self.lcdFilament.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
+		self.lcdFeedrate.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
+		
 		#Update sensor display thread
 		updateLabel = threading.Thread(target=self.updateTemperaturelabel)
 		updateLabel.daemon = True
 		updateLabel.start()
-		
 		
 	def retranslateUi(self, labelWindow):
 		_translate = QtCore.QCoreApplication.translate
@@ -460,8 +507,8 @@ class Ui_labelWindow(object):
 		self.labelHotend.setText(_translate("labelWindow", "HotEnd"))
 		self.labelFeedrate.setText(_translate("labelWindow", "Feedrate"))
 		self.btnONAircon.setText(_translate("labelWindow", "On"))
-		self.btnRetract.setText(_translate("labelWindow", "Retract"))
-		self.btnExtrude.setText(_translate("labelWindow", "Extrude"))
+		self.btnDirection.setText(_translate("labelWindow", "Forward"))
+		self.btnmotorStart.setText(_translate("labelWindow", "Start"))
 		self.btnOFFAircon.setText(_translate("labelWindow", "Off"))
 		self.btnONColdblock.setText(_translate("labelWindow", "On"))
 		self.btnOFFColdblock.setText(_translate("labelWindow", "Off"))
@@ -476,11 +523,6 @@ class Ui_labelWindow(object):
 		self.menuFile.setTitle(_translate("labelWindow", "File"))
 		self.actionExit.setText(_translate("labelWindow", "Exit"))
 '''
-def function_cleanup():
-	print("hello2")
-	time.sleep(1)
-	print("hello3")
-
 if __name__ == "__main__": 
     app = QtWidgets.QApplication(sys.argv)
     app.aboutToQuit.connect(function_cleanup)

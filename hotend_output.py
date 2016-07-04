@@ -39,7 +39,7 @@ def run(heaterpin, heater):
 		else:
 			if(hotend_enabled):
 				heater.start(hotend_pwm)
-				print("Hotend Temp = Tar:%.1fC Cur:%.1fC HeaterOutput = %.1f" %(hotend_setpoint,sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+				print("Hotend Temp = Tgt:%.1fC Cur:%.1fC HeaterOutput = %.1f" %(hotend_setpoint,sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
 			else:
 				heater.start(0)
 		next_call = next_call + 1

@@ -39,7 +39,7 @@ def run(peltierpin1, peltier1, peltierfanpin1):
 		else:
 			if(aircon_enabled):
 				peltier1.start(aircon_pwm)
-				print("Aircon Temp = Tar:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(aircon_setpoint,sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+				print("Aircon Temp = Tgt:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(aircon_setpoint,sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
 				if(sensors.adc1_temp_cur <= 25.5 or aircon_pwm >= 75.0): #dew point
 					grovepi.analogWrite(peltierfanpin1,255) #full
 				elif(aircon_pwm >= 50.0): 
