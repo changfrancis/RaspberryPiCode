@@ -18,6 +18,8 @@ def run(dir_pin, step_pin, enable_pin):
 	while True:	
 		if(motor_enabled):
 			motor.do_step(400,100)
+		#else:
+		#	motor.set_off()
 		next_call = next_call + 2
 		time.sleep(next_call - time.time())
 		
@@ -100,6 +102,9 @@ class Stepper:
 
     def set_off(self):
         GPIO.output(self.enable_pin,1) 
+
+    def set_on(self):
+        GPIO.output(self.enable_pin,0) 
 
     def get_speed(self):
 		return self.speed

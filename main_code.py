@@ -11,7 +11,6 @@
 #GUI Compile command
 #pyuic5 -x mainwindow.ui -o mainwindow.py
 
-from Tkinter import *
 import datetime, time, sys, thread, threading, signal, atexit, serial
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
@@ -30,11 +29,11 @@ import stepper_output
 import hotend_output
 import herkulex
 from herkulex import servo
+import mainwindow
 
 # Exit handlers
 def exitProgram():
 	print("Exiting...\n\n\n")
-	
 	sensors.ambience_sensor_enabled = 0 
 	sensors.adc1_sensor_enabled = 0 
 	sensors.adc2_sensor_enabled = 0 
@@ -114,21 +113,19 @@ if __name__ == "__main__":
 		GPIO.setup(heaterpin, GPIO.OUT) 
 		heater = GPIO.PWM(heaterpin, 50)
 		heater.start(0)
-		time.sleep(0.1)
 		#Fans
 		grovepi.analogWrite(peltierfanpin1,0) #aircon, 0-255
 		grovepi.analogWrite(peltierfanpin2,0) #coldblock, 0-255
 		
 		#Starting Individual Thread
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
+		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread
 		
-		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",))
-		
-		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1))
+		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1,peltierfanpin1))
 		aircon.daemon = True
 		aircon.start()
 		
-		coldblock = threading.Thread(target=coldblock_output.run, args = (peltierpin2,peltier2))
+		coldblock = threading.Thread(target=coldblock_output.run, args = (peltierpin2,peltier2,peltierfanpin2))
 		coldblock.daemon = True
 		coldblock.start()
 		
@@ -145,20 +142,12 @@ if __name__ == "__main__":
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-		aircon_output.aircon_enabled = 0 #enable power to pin
-		coldblock_output.coldblock_enabled = 0 #enable power to pin
-		hotend_output.hotend_enabled = 0 #enable power to pin
+		#aircon_output.aircon_enabled = 0 #enable power to pin
+		#coldblock_output.coldblock_enabled = 0 #enable power to pin
+		#hotend_output.hotend_enabled = 0 #enable power to pin
 		stepper_output.motor_enabled = 1 #enable power to pin
 
 		time.sleep(0.8)
-	
-		app = QtWidgets.QApplication(sys.argv)
-		labelWindow = QtWidgets.QMainWindow()
-		ui = mainwindow.Ui_labelWindow()
-		ui.setupUi(labelWindow)
-		labelWindow.show()
-		app.exec_()
-		
 		print("\n\n\nBoot-up ... Successful\n")
 		time.sleep(0.2)
 		
@@ -167,6 +156,17 @@ if __name__ == "__main__":
 		print("Boot-up ... Failed\n")
 		GPIO.cleanup()
 
+	app = QtWidgets.QApplication(sys.argv)
+	app.aboutToQuit.connect(exitProgram)
+	labelWindow = QtWidgets.QMainWindow()
+	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin)
+	ui.setupUi(labelWindow)
+	ui.updateSetpoint_all_threads()
+	labelWindow.show()
+	sys.exit(app.exec_())
+	GPIO.cleanup()
+	
+	'''
 	while True:
 		try:
 			#print("Ambience Temp = %.1f" %sensors.ambience_temp + "C")
@@ -199,8 +199,8 @@ if __name__ == "__main__":
 			exitProgram()
 		except Exception, e:
 			print(str(e))
+	'''
 
-	GPIO.cleanup()
 '''
 	root = Tk()
 	topFrame = Frame(root)

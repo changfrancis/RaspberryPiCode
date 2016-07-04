@@ -8,17 +8,18 @@ import screen
 
 #Enable Variables
 aircon_enabled = 0
+aircon_setpoint = 35.0 #higher safer
 
-def run(peltierpin1, peltier1):
-	global aircon_enabled
+def run(peltierpin1, peltier1, peltierfanpin1):
+	global aircon_enabled, aircon_setpoint
 	aircon_pwm = 0
 	peltier1.start(0)
 	airconPID = PIDclass(18,6,5) #init P I D value
-	airconPID.SetPoint = 35.0 #target temperature in degree
 	airconPID.setSampleTime(0)
 	print("Aircon PID ... Started")
 	next_call = time.time()
 	while True:
+		airconPID.SetPoint = aircon_setpoint #target temperature in degree
 		airconPID.update(sensors.adc1_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
 		buf = airconPID.output * -1.0
@@ -29,6 +30,7 @@ def run(peltierpin1, peltier1):
 			aircon_pwm = 0
 		else:
 			aircon_pwm = buf
+			
 		if(sensors.adc1_temp_cur <= -900):
 			print("Error: Run away thermistor - Aircon")
 			aircon_enabled = 0
@@ -37,9 +39,20 @@ def run(peltierpin1, peltier1):
 		else:
 			if(aircon_enabled):
 				peltier1.start(aircon_pwm)
-				print("Aircon Temp = %.1fC PeltierOutput = %.1f" %(sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+				print("Aircon Temp = Tar:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(aircon_setpoint,sensors.adc1_temp_cur,aircon_pwm) + "%"  + " Enable = %d" %(aircon_enabled))
+				if(sensors.adc1_temp_cur <= 25.5 or aircon_pwm >= 75.0): #dew point
+					grovepi.analogWrite(peltierfanpin1,255) #full
+				elif(aircon_pwm >= 50.0): 
+					grovepi.analogWrite(peltierfanpin1,200) #full-half
+				elif(aircon_pwm >= 10.0):
+					grovepi.analogWrite(peltierfanpin1,125) #half
 			else:
 				peltier1.start(0)
+				if(sensors.adc1_temp_cur <= 25.0): #dew point
+					print("Aircon Self Protection : Fan On")
+					grovepi.analogWrite(peltierfanpin1,255) #on
+				else:
+					grovepi.analogWrite(peltierfanpin1,0) #off
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	

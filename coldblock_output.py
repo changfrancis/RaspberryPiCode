@@ -8,17 +8,18 @@ import screen
 
 #Enable Variables
 coldblock_enabled = 0
+coldblock_setpoint = 35.0 #higher safer
 
-def run(peltierpin2, peltier2):
-	global coldblock_enabled
+def run(peltierpin2, peltier2, peltierfanpin2):
+	global coldblock_enabled, coldblock_setpoint
 	coldblock_pwm = 0
 	peltier2.start(0)
 	coldblockPID = PIDclass(15,5,10) #init P I D value
-	coldblockPID.SetPoint = 35.0 #target temperature in degree
 	coldblockPID.setSampleTime(0)
 	print("Coldblock PID ... Started")
 	next_call = time.time()
 	while True:
+		coldblockPID.SetPoint = coldblock_setpoint #target temperature in degree
 		coldblockPID.update(sensors.adc2_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
 		buf = coldblockPID.output * -1.0
@@ -37,9 +38,15 @@ def run(peltierpin2, peltier2):
 		else:
 			if(coldblock_enabled):
 				peltier2.start(coldblock_pwm)
-				print("ColdblockTemp = %.1fC PeltierOutput = %.1f" %(sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
+				grovepi.analogWrite(peltierfanpin2,250) #full
+				print("ColdblockTemp = Tar:%.1fC Cur:%.1fC PeltierOutput = %.1f" %(coldblock_setpoint,sensors.adc2_temp_cur,coldblock_pwm) + "%" + " Enable = %d" %(coldblock_enabled))
 			else:
 				peltier2.start(0)
+				if(sensors.adc2_temp_cur <= 25.0): #dew point
+					print("Coldblock Self Protection : Fan On")
+					grovepi.analogWrite(peltierfanpin2,255) #on
+				else:
+					grovepi.analogWrite(peltierfanpin2,0) #off
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
 	

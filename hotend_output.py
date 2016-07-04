@@ -8,17 +8,19 @@ import screen
 
 #Enable Variables
 hotend_enabled = 0
+hotend_setpoint = 25.0 #lower safer
 
 def run(heaterpin, heater):
-	global hotend_enabled
+	global hotend_enabled, hotend_setpoint
 	hotend_pwm = 0
 	heater.start(0)
 	hotendPID = PIDclass(8,1,4.5) #init P I D value
-	hotendPID.SetPoint = 35.0 #target temperature in degree
+	hotendPID.SetPoint = 25.0 #target temperature in degree
 	hotendPID.setSampleTime(0)
 	print("Hotend PID ... Started")
 	next_call = time.time()
 	while True:
+		hotendPID.SetPoint = hotend_setpoint #target temperature in degree
 		hotendPID.update(sensors.adc3_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
 		buf = hotendPID.output * 1.0
@@ -37,7 +39,7 @@ def run(heaterpin, heater):
 		else:
 			if(hotend_enabled):
 				heater.start(hotend_pwm)
-				print("Hotend Temp = %.1fC HeaterOutput = %.1f" %(sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+				print("Hotend Temp = Tar:%.1fC Cur:%.1fC HeaterOutput = %.1f" %(hotend_setpoint,sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
 			else:
 				heater.start(0)
 		next_call = next_call + 1
