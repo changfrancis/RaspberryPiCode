@@ -18,9 +18,10 @@ import hotend_output
 import grovepi
 import herkulex
 from herkulex import servo
+import buzzer
 		
 class Ui_labelWindow(object):
-	def __init__(self, _peltierfanpin1, _peltierfanpin2, _peltier1, _peltier2, _heater, _motor_step_pin, _motor_dir_pin, _motor_enable_pin):
+	def __init__(self, _peltierfanpin1, _peltierfanpin2, _peltier1, _peltier2, _heater, _motor_step_pin, _motor_dir_pin, _motor_enable_pin, _buzzerpin):
 		self.peltierfanpin1 = _peltierfanpin1
 		self.peltierfanpin2 = _peltierfanpin2
 		self.peltier1 = _peltier1
@@ -30,6 +31,7 @@ class Ui_labelWindow(object):
 		self.motor_dir_pin = _motor_dir_pin
 		self.motor_enable_pin = _motor_enable_pin
 		self.motorStart = 0
+		self.buzzerpin = _buzzerpin
 		
 	def updateTemperaturelabel(self):
 		while True:
@@ -42,6 +44,7 @@ class Ui_labelWindow(object):
 			print("update set point")
 	
 	def function_Exit(self):
+		buzzer.beep_click(self.buzzerpin)
 		self.function_Estop()
 		sensors.ambience_sensor_enabled = 0 
 		sensors.adc1_sensor_enabled = 0 
@@ -55,66 +58,78 @@ class Ui_labelWindow(object):
 		self.lcdFilament.setProperty("value", buf)
 		herkulex.servo_enabled = 1
 		herkulex.filament_dia = buf
+		buzzer.beep_scroll(self.buzzerpin)
 		#print(buf)
 	
 	def function_scrollFeedrate(self):
 		buf = self.scrollFeedrate.value()
 		self.lcdFeedrate.setProperty("value", buf)
 		stepper_output.motor_feedrate = buf
+		buzzer.beep_scroll(self.buzzerpin)
 		#print(stepper_output.motor_feedrate)
 		
 	def function_scrollAircon(self):
 		buf = self.scrollAircon.value()/10.0
 		self.lcdAircon.setProperty("value", buf)
 		aircon_output.aircon_setpoint = buf	
+		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_scrollColdblock(self):
 		buf = self.scrollColdblock.value()/10.0
 		self.lcdcoldblock.setProperty("value", buf)
 		coldblock_output.coldblock_setpoint = buf
+		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_scrollHotend(self):
 		buf = self.scrollHotend.value()/10.0
 		self.lcdHotend.setProperty("value", buf)
 		hotend_output.hotend_setpoint = buf
+		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_ONaircon(self):
 		self.lcdAircon.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
 		aircon_output.aircon_enabled = 1 
+		buzzer.beep_click(self.buzzerpin)
 		
 	def function_OFFaircon(self):
 		self.lcdAircon.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
-		aircon_output.aircon_enabled = 0 	
+		aircon_output.aircon_enabled = 0 
+		buzzer.beep_click(self.buzzerpin)	
 	
 	def function_ONcoldblock(self):
 		self.lcdcoldblock.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
-		coldblock_output.coldblock_enabled = 1 	
+		coldblock_output.coldblock_enabled = 1 
+		buzzer.beep_click(self.buzzerpin)	
 	
 	def function_OFFcoldblock(self):
 		self.lcdcoldblock.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
-		coldblock_output.coldblock_enabled = 0 	
+		coldblock_output.coldblock_enabled = 0 
+		buzzer.beep_click(self.buzzerpin)	
 		
 	def function_ONhotend(self):
 		self.lcdHotend.setStyleSheet("background-color: rgb(0,255,0);") #b,g,r format
-		hotend_output.hotend_enabled = 1 	
+		hotend_output.hotend_enabled = 1
+		buzzer.beep_click(self.buzzerpin) 	
 	
 	def function_OFFhotend(self):
 		self.lcdHotend.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
-		hotend_output.hotend_enabled = 0 	
+		hotend_output.hotend_enabled = 0
+		buzzer.beep_click(self.buzzerpin) 	
 		
 	def function_motorStart(self):
 		if(self.motorStart == 0):
 			self.motorStart = 1
-			print("on")
+			#print("on")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(0,0,255);") #b,g,r format
 			self.btnmotorStart.setText("Stop")
 			stepper_output.motor_enabled = 1
 		elif(self.motorStart == 1):
 			self.motorStart = 0
-			print("off")
+			#print("off")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnmotorStart.setText("Start")
 			stepper_output.motor_enabled = 0
+		buzzer.beep_click(self.buzzerpin)
 		
 	def function_Direction(self):
 		if(stepper_output.motor_direction):
@@ -123,7 +138,8 @@ class Ui_labelWindow(object):
 		else:
 			self.btnDirection.setText("Forward")
 			stepper_output.motor_direction = 1
-		print(stepper_output.motor_direction)
+		#print(stepper_output.motor_direction)
+		buzzer.beep_click(self.buzzerpin)
 	
 	def function_Estop(self):
 		try: 
@@ -143,10 +159,12 @@ class Ui_labelWindow(object):
 			GPIO.output(self.motor_dir_pin,0) #set H to disable
 			GPIO.output(self.motor_step_pin,0) #set H to disable
 			print("Successful = Power down system")	
+			buzzer.beep(self.buzzerpin,2)
 		except Exception, e:
 			print("Failed = Pls manual power down")
 			print("Failed = Pls manual power down")	
-			print("Failed = Pls manual power down")		
+			print("Failed = Pls manual power down")
+			buzzer.beep_fail(self.buzzerpin)		
 			print(str(e))
 
 	def setupUi(self, labelWindow):

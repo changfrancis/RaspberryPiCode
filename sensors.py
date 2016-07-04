@@ -36,25 +36,25 @@ def read_sensors(threadName):
 			time.sleep(0.1) 
 			ambience_humidity = ht_sensor.getHumidity()
 			time.sleep(0.1) 
-			#print("Temp: %.2fC\tHumidity:%.2f" %(ambience_temp,ambience_humidity) + "%")
-			#print("ht sensor updated")	
+			print("DHT Temp: %.2fC\tHumidity:%.2f" %(ambience_temp,ambience_humidity) + "%")
+			#print("dht sensor updated")	
 		if(adc1_sensor_enabled == 1) and (counter % 2 == 0):
 			buf = get_semitecindegree(adc1.adc_read())
 			adc1_temp_cur = (buf +  adc1_temp_old) / 2
 			adc1_temp_old = adc1_temp_cur
-			#print("Temp:" %(adc1_temp) + "C")
+			#print("Aircon Temp: %.1f" %(adc1_temp_cur) + "C")
 			#print("adc1 updated")
 		if(adc2_sensor_enabled == 1) and (counter % 2 == 0):
 			buf = get_semitecindegree(adc2.adc_read())
 			adc2_temp_cur = (buf +  adc2_temp_old) / 2
 			adc2_temp_old = adc2_temp_cur
-			#print("Temp:" %(adc2_temp) + "C")
+			#print("Coldblock Temp: %.1f" %(adc2_temp_cur) + "C")
 			#print("adc2 updated")
 		if(adc3_sensor_enabled == 1) and (counter % 2 == 0):
 			buf = get_semitecindegree(adc3.adc_read())
 			adc3_temp_cur = (buf +  adc3_temp_old) / 2
 			adc3_temp_old = adc3_temp_cur
-			#print("Temp:" %(adc3_temp) + "C")
+			#print("Hotend Temp: %.1f" %(adc3_temp_cur) + "C")
 			#print("adc3 updated")
 		counter = counter + 1
 		#print(counter)

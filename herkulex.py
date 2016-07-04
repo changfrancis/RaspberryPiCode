@@ -140,7 +140,7 @@ def run(servo1, servo2, servo3):
 		if(servo_enabled):
 			clear_errors()
 			servomove = ((filament_dia - 1.75) / 0.01) * 3.0
-			print(servomove)
+			#print(servomove)
 			servo1.torque_on()
 			servo1.set_servo_angle(servo1_offset+servomove, 150, 0x00) #goaltime is 1 to 255
 			servo2.torque_on()

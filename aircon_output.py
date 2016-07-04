@@ -4,7 +4,6 @@ from time import sleep
 import RPi.GPIO as GPIO
 import sensors
 import grovepi
-import screen
 
 #Enable Variables
 aircon_enabled = 0

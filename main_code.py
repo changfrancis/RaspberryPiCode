@@ -19,7 +19,6 @@ from scipy.interpolate import spline
 import matplotlib.pyplot as plt
 import RPi.GPIO as GPIO
 import PID
-import screen
 import mainwindow
 import sensors
 import grovepi
@@ -30,6 +29,7 @@ import hotend_output
 import herkulex
 from herkulex import servo
 import mainwindow
+import buzzer
 
 # Exit handlers
 def exitProgram():
@@ -75,6 +75,7 @@ if __name__ == "__main__":
 		motor_dir_pin = 26 #Stepper motor
 		motor_step_pin = 19
 		motor_enable_pin = 13
+		buzzerpin = 4 #buzzer
 
 		#Servo Motor Configuration
 		herkulex.connect("/dev/ttyS0", 115200)
@@ -110,6 +111,9 @@ if __name__ == "__main__":
 		#Fans
 		grovepi.analogWrite(peltierfanpin1,0) #aircon, 0-255
 		grovepi.analogWrite(peltierfanpin2,0) #coldblock, 0-255
+		#Buzzer
+		grovepi.pinMode(buzzerpin,"OUTPUT")
+		grovepi.digitalWrite(buzzerpin,0) #off
 		
 		#Starting Individual Thread
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
@@ -135,25 +139,30 @@ if __name__ == "__main__":
 		herkulexthread.daemon = True
 		herkulexthread.start()
 		
-		#Enable the devices ans sensors
+		#Enable buzzer warning
+		buzzer.alertbuzzer_enabled = 1
+		thread.start_new_thread(buzzer.run, (buzzerpin,)) #start sensor thread
+		
+		#Enable the devices and sensors
 		sensors.ambience_sensor_enabled = 0 #enable temp reading after thread start
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-
-		time.sleep(0.8)
+		
+		time.sleep(0.5)
 		print("\n\n\nBoot-up ... Successful\n\n\n")
-		time.sleep(0.2)
+		buzzer.beep(buzzerpin, 1)
 		
 	except Exception, e:
 		print(str(e))
 		print("\n\n\nBoot-up ... Failed\n")
+		buzzer.beep_fail(buzzerpin)
 		GPIO.cleanup()
 
 	app = QtWidgets.QApplication(sys.argv)
 	app.aboutToQuit.connect(exitProgram)
 	labelWindow = QtWidgets.QMainWindow()
-	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin)
+	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin)
 	ui.setupUi(labelWindow)
 	ui.updateSetpoint_all_threads()
 	labelWindow.show()

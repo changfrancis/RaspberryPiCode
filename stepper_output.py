@@ -4,7 +4,6 @@ from time import sleep
 import RPi.GPIO as GPIO
 import sensors
 import grovepi
-import screen
 import math
 
 #Enable Variables
@@ -25,6 +24,7 @@ def run(dir_pin, step_pin, enable_pin):
 			motor.set_direction(motor_direction)
 			motor.set_on()
 			motor.do_step(motor_feedrate)
+		time.sleep(0.01)
 		
 class Stepper:
 	"""
