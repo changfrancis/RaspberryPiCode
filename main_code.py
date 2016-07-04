@@ -8,8 +8,12 @@
 # user: changfrancis@hotmail.com
 # pw: 8524879j
 
+#GUI Compile command
+#pyuic5 -x mainwindow.ui -o mainwindow.py
+
 from Tkinter import *
 import datetime, time, sys, thread, threading, signal, atexit, serial
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 from time import sleep
 from scipy.interpolate import spline
@@ -17,6 +21,7 @@ import matplotlib.pyplot as plt
 import RPi.GPIO as GPIO
 import PID
 import screen
+import mainwindow
 import sensors
 import grovepi
 import aircon_output
@@ -47,6 +52,9 @@ def exitProgram():
 	GPIO.output(motor_enable_pin,1) #set H to disable
 	GPIO.output(motor_dir_pin,0) #set H to disable
 	GPIO.output(motor_step_pin,0) #set H to disable
+	servo1.torque_off()
+	servo2.torque_off()
+	servo3.torque_off()
 	GPIO.cleanup()
 	time.sleep(1.5)
 	sys.exit(0)
@@ -137,12 +145,19 @@ if __name__ == "__main__":
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-		aircon_output.aircon_enabled = 1 #enable power to pin
-		coldblock_output.coldblock_enabled = 1 #enable power to pin
-		hotend_output.hotend_enabled = 1 #enable power to pin
+		aircon_output.aircon_enabled = 0 #enable power to pin
+		coldblock_output.coldblock_enabled = 0 #enable power to pin
+		hotend_output.hotend_enabled = 0 #enable power to pin
 		stepper_output.motor_enabled = 1 #enable power to pin
 
 		time.sleep(0.8)
+	
+		app = QtWidgets.QApplication(sys.argv)
+		labelWindow = QtWidgets.QMainWindow()
+		ui = mainwindow.Ui_labelWindow()
+		ui.setupUi(labelWindow)
+		labelWindow.show()
+		app.exec_()
 		
 		print("\n\n\nBoot-up ... Successful\n")
 		time.sleep(0.2)
@@ -162,19 +177,11 @@ if __name__ == "__main__":
 			#data = ser.read(10)
 			#print('hellodasdasdasdasdasdadsworld2')
 			servo1.torque_on()
-			servo1.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
+			servo1.set_servo_angle(150, 100, 0x00) #goaltime is 1 to 255
 			servo2.torque_on()
-			servo2.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
+			servo2.set_servo_angle(150, 100, 0x00) #goaltime is 1 to 255
 			servo3.torque_on()
-			servo3.set_servo_angle(0, 5, 0x00) #goaltime is 1 to 255
-			time.sleep(1)
-			herkulex.clear_errors()
-			servo1.torque_on()
-			servo1.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
-			servo2.torque_on()
-			servo2.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
-			servo3.torque_on()
-			servo3.set_servo_angle(90, 5, 0x00) #goaltime is 1 to 255
+			servo3.set_servo_angle(150, 100, 0x00) #goaltime is 1 to 255
 			time.sleep(1)
 			herkulex.clear_errors()
 			#print(servo1.get_servo_status_detail())

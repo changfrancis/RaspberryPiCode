@@ -13,8 +13,8 @@ def run(heaterpin, heater):
 	global hotend_enabled
 	hotend_pwm = 0
 	heater.start(0)
-	hotendPID = PIDclass(8,0.8,4.5) #init P I D value
-	hotendPID.SetPoint = 30.0 #target temperature in degree
+	hotendPID = PIDclass(8,1,4.5) #init P I D value
+	hotendPID.SetPoint = 35.0 #target temperature in degree
 	hotendPID.setSampleTime(0)
 	print("Hotend PID ... Started")
 	next_call = time.time()
@@ -23,8 +23,8 @@ def run(heaterpin, heater):
 		#print datetime.datetime.now()
 		buf = hotendPID.output * 1.0
 		#print(buf)
-		if(buf > 100):
-			hotend_pwm = 100
+		if(buf > 50):
+			hotend_pwm = 50
 		elif(buf <= 0):
 			hotend_pwm = 0
 		else:
@@ -33,6 +33,7 @@ def run(heaterpin, heater):
 			print("Error: Run away thermistor - Hotend")
 			hotend_enabled = 0
 			hotendPID.clear()
+			heater.start(0)
 		else:
 			if(hotend_enabled):
 				heater.start(hotend_pwm)

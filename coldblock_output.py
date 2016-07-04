@@ -33,6 +33,7 @@ def run(peltierpin2, peltier2):
 			print("Error: Run away thermistor - ColdBlock")
 			coldblock_enabled = 0
 			coldblockPID.clear()
+			peltier2.start(0)
 		else:
 			if(coldblock_enabled):
 				peltier2.start(coldblock_pwm)

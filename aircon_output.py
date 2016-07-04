@@ -33,6 +33,7 @@ def run(peltierpin1, peltier1):
 			print("Error: Run away thermistor - Aircon")
 			aircon_enabled = 0
 			airconPID.clear()
+			peltier1.start(0)
 		else:
 			if(aircon_enabled):
 				peltier1.start(aircon_pwm)
