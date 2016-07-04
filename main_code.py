@@ -42,7 +42,7 @@ def exitProgram():
 	coldblock_output.coldblock_enabled = 0
 	hotend_output.hotend_enabled = 0 
 	stepper_output.motor_enabled = 0
-	
+	herkulex.servo_enabled = 0
 	grovepi.analogWrite(peltierfanpin1,0)
 	grovepi.analogWrite(peltierfanpin2,0)
 	peltier1.start(0)
@@ -51,19 +51,17 @@ def exitProgram():
 	GPIO.output(motor_enable_pin,1) #set H to disable
 	GPIO.output(motor_dir_pin,0) #set H to disable
 	GPIO.output(motor_step_pin,0) #set H to disable
+	herkulex.clear_errors()
 	servo1.torque_off()
 	servo2.torque_off()
 	servo3.torque_off()
+	herkulex.close()
 	GPIO.cleanup()
 	time.sleep(1.5)
 	sys.exit(0)
 	
 def Read_Temp_Humid():
 	print("Temp: %.2fC\tHumidity:%.2f" %(ht_sensor.getTemperature(),ht_sensor.getHumidity()),"%")
-
-def printit():
-		threading.Timer(2.0, printit).start()
-		print "hello, world"
 
 if __name__ == "__main__": 
 	try:
@@ -84,12 +82,8 @@ if __name__ == "__main__":
 		#servos = herkulex.scan_servos(0x01,0x02) #min and max range of ServoID
 		#print(servos)
 		servo1=servo(0x01,0x02) #ServoID, Model
-		servo1.torque_on()
-		servo1.set_led(0x02)
 		servo2=servo(0x02,0x02) #ServoID, Model
-		servo2.torque_on()
 		servo3=servo(0x03,0x02) #ServoID, Model
-		servo3.torque_on()
 		#servo1.set_servo_angle(50, 1, 0x00) #goaltime is 1 to 255
 		time.sleep(0.1)
 		#Configuration of Pin IO
@@ -137,23 +131,23 @@ if __name__ == "__main__":
 		motorthread.daemon = True
 		motorthread.start()
 		
+		herkulexthread = threading.Thread(target=herkulex.run, args = (servo1,servo2,servo3))
+		herkulexthread.daemon = True
+		herkulexthread.start()
+		
 		#Enable the devices ans sensors
 		sensors.ambience_sensor_enabled = 0 #enable temp reading after thread start
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-		#aircon_output.aircon_enabled = 0 #enable power to pin
-		#coldblock_output.coldblock_enabled = 0 #enable power to pin
-		#hotend_output.hotend_enabled = 0 #enable power to pin
-		stepper_output.motor_enabled = 1 #enable power to pin
 
 		time.sleep(0.8)
-		print("\n\n\nBoot-up ... Successful\n")
+		print("\n\n\nBoot-up ... Successful\n\n\n")
 		time.sleep(0.2)
 		
 	except Exception, e:
 		print(str(e))
-		print("Boot-up ... Failed\n")
+		print("\n\n\nBoot-up ... Failed\n")
 		GPIO.cleanup()
 
 	app = QtWidgets.QApplication(sys.argv)
@@ -200,44 +194,3 @@ if __name__ == "__main__":
 		except Exception, e:
 			print(str(e))
 	'''
-
-'''
-	root = Tk()
-	topFrame = Frame(root)
-	topFrame.pack(side=TOP)
-	bottomFrame = Frame(root)
-	bottomFrame.pack(side=BOTTOM)
-	
-	button1 = Button(topFrame, text="Start", bg="white", fg="green")
-	button2 = Button(topFrame, text="End", bg="white", fg="blue")
-	button3 = Button(topFrame, text="Exit", bg="white", fg="red", command=exitProgram)
-	button4 = Button(bottomFrame, text="Bottom", bg="black", fg="yellow")
-	button5 = Button(bottomFrame, text="Fill", bg="black", fg="yellow")
-	entry1 = Entry(bottomFrame)
-	
-	c = Checkbutton(bottomFrame, text="checkbox")
-	
-	button1.pack(side=LEFT, fill=X)
-	button2.pack(side=LEFT, fill=Y)
-	button3.pack(side=LEFT)
-	
-	button4.grid(row=0,column=0, sticky="N")
-	button5.grid(row=0,column=1, sticky="E")
-	entry1.grid(row=1,column=0, sticky="S")
-	c.grid(columnspan=2, sticky="S")
-	
-	theLabel = Label(topFrame, text="hi hello world")
-	theLabel.pack(side=TOP)
-	
-	root.mainloop()
-	
-	ht_sensor = grove_i2c_temp_hum_mini.th02()
-	adc = ADC()
-	#test_pid(1.2, 1, 0.001, L=50)
-	printit()
-	while True:
-		adc.address
-		Read_Temp_Humid() 
-		print(adc.address)
-		time.sleep(3)
-'''

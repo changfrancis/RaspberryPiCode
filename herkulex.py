@@ -122,6 +122,41 @@ BYTE2 = 0x02
 BROADCAST_ID = 0xFE
 SERPORT = None
 
+servo_enabled = 1
+filament_dia = 1.75
+
+def run(servo1, servo2, servo3):
+	global servo_enabled
+	servo1_offset = -50
+	servo2_offset = -50
+	servo3_offset = -50
+	print("Herkulex Servo Thread ... Started")
+	next_call = time.time()
+	clear_errors()
+	servo1.torque_on()
+	servo2.torque_on()
+	servo1.torque_on()
+	while True:
+		if(servo_enabled):
+			clear_errors()
+			servomove = ((filament_dia - 1.75) / 0.01) * 3.0
+			print(servomove)
+			servo1.torque_on()
+			servo1.set_servo_angle(servo1_offset+servomove, 150, 0x00) #goaltime is 1 to 255
+			servo2.torque_on()
+			servo2.set_servo_angle(servo2_offset+servomove, 150, 0x00) #goaltime is 1 to 255
+			servo3.torque_on()
+			servo3.set_servo_angle(servo3_offset+servomove, 100, 0x00) #goaltime is 1 to 255
+			time.sleep(1)
+		else:
+			clear_errors()
+			servo1.torque_off()
+			servo2.torque_off()	
+			servo2.torque_off()		
+			time.sleep(0.25)
+		#next_call = next_call + 1
+		#time.sleep(next_call - time.time())
+
 def connect(portname, baudrate):
     """ Connect to the Herkulex bus
     Connect to serial port to which Herkulex Servos are attatched

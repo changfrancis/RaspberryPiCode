@@ -15,7 +15,6 @@ def run(heaterpin, heater):
 	hotend_pwm = 0
 	heater.start(0)
 	hotendPID = PIDclass(8,1,4.5) #init P I D value
-	hotendPID.SetPoint = 25.0 #target temperature in degree
 	hotendPID.setSampleTime(0)
 	print("Hotend PID ... Started")
 	next_call = time.time()

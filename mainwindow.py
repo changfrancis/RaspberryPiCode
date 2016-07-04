@@ -16,6 +16,8 @@ import coldblock_output
 import stepper_output
 import hotend_output
 import grovepi
+import herkulex
+from herkulex import servo
 		
 class Ui_labelWindow(object):
 	def __init__(self, _peltierfanpin1, _peltierfanpin2, _peltier1, _peltier2, _heater, _motor_step_pin, _motor_dir_pin, _motor_enable_pin):
@@ -28,7 +30,6 @@ class Ui_labelWindow(object):
 		self.motor_dir_pin = _motor_dir_pin
 		self.motor_enable_pin = _motor_enable_pin
 		self.motorStart = 0
-		self.motorDirection = 1
 		
 	def updateTemperaturelabel(self):
 		while True:
@@ -52,10 +53,15 @@ class Ui_labelWindow(object):
 	def function_scrollFilament(self):
 		buf = self.scrollFilament.value()/100.0
 		self.lcdFilament.setProperty("value", buf)
+		herkulex.servo_enabled = 1
+		herkulex.filament_dia = buf
+		#print(buf)
 	
 	def function_scrollFeedrate(self):
 		buf = self.scrollFeedrate.value()
 		self.lcdFeedrate.setProperty("value", buf)
+		stepper_output.motor_feedrate = buf
+		#print(stepper_output.motor_feedrate)
 		
 	def function_scrollAircon(self):
 		buf = self.scrollAircon.value()/10.0
@@ -102,19 +108,22 @@ class Ui_labelWindow(object):
 			print("on")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(0,0,255);") #b,g,r format
 			self.btnmotorStart.setText("Stop")
+			stepper_output.motor_enabled = 1
 		elif(self.motorStart == 1):
 			self.motorStart = 0
 			print("off")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnmotorStart.setText("Start")
+			stepper_output.motor_enabled = 0
 		
 	def function_Direction(self):
-		self.motorDirection = not(self.motorDirection) 
-		print(self.motorDirection)	
-		if(self.motorDirection):
-			self.btnDirection.setText("Forward")
-		else:
+		if(stepper_output.motor_direction):
 			self.btnDirection.setText("Reverse")
+			stepper_output.motor_direction = 0
+		else:
+			self.btnDirection.setText("Forward")
+			stepper_output.motor_direction = 1
+		print(stepper_output.motor_direction)
 	
 	def function_Estop(self):
 		try: 
@@ -124,7 +133,7 @@ class Ui_labelWindow(object):
 			coldblock_output.coldblock_enabled = 0
 			hotend_output.hotend_enabled = 0 
 			stepper_output.motor_enabled = 0
-			
+			herkulex.servo_enabled = 0
 			grovepi.analogWrite(self.peltierfanpin1,0)
 			grovepi.analogWrite(self.peltierfanpin2,0)
 			self.peltier1.start(0)
@@ -241,7 +250,7 @@ class Ui_labelWindow(object):
 		self.lcdFeedrate.setSmallDecimalPoint(False)
 		self.lcdFeedrate.setDigitCount(5)
 		self.lcdFeedrate.setSegmentStyle(QtWidgets.QLCDNumber.Filled)
-		self.lcdFeedrate.setProperty("value", 5.0)
+		self.lcdFeedrate.setProperty("value", 10.0)
 		self.lcdFeedrate.setObjectName("lcdFeedrate")
 		self.lcdFilament = QtWidgets.QLCDNumber(self.boxSetTarget)
 		self.lcdFilament.setGeometry(QtCore.QRect(90, 20, 120, 100))
@@ -295,10 +304,10 @@ class Ui_labelWindow(object):
 		self.scrollFeedrate.setGeometry(QtCore.QRect(220, 460, 40, 100))
 		self.scrollFeedrate.setAutoFillBackground(False)
 		self.scrollFeedrate.setMinimum(1)
-		self.scrollFeedrate.setMaximum(50)
+		self.scrollFeedrate.setMaximum(500)
 		self.scrollFeedrate.setPageStep(1)
-		self.scrollFeedrate.setProperty("value", 5)
-		self.scrollFeedrate.setSliderPosition(5)
+		self.scrollFeedrate.setProperty("value", 10)
+		self.scrollFeedrate.setSliderPosition(10)
 		self.scrollFeedrate.setOrientation(QtCore.Qt.Vertical)
 		self.scrollFeedrate.setInvertedAppearance(False)
 		self.scrollFeedrate.setInvertedControls(True)
