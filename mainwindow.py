@@ -21,7 +21,7 @@ from herkulex import servo
 import buzzer
 		
 class Ui_labelWindow(object):
-	def __init__(self, _peltierfanpin1, _peltierfanpin2, _peltier1, _peltier2, _heater, _motor_step_pin, _motor_dir_pin, _motor_enable_pin, _buzzerpin):
+	def __init__(self, _peltierfanpin1, _peltierfanpin2, _peltier1, _peltier2, _heater, _motor_step_pin, _motor_dir_pin, _motor_enable_pin, _buzzerpin, _ledcirclepin):
 		self.peltierfanpin1 = _peltierfanpin1
 		self.peltierfanpin2 = _peltierfanpin2
 		self.peltier1 = _peltier1
@@ -32,6 +32,7 @@ class Ui_labelWindow(object):
 		self.motor_enable_pin = _motor_enable_pin
 		self.motorStart = 0
 		self.buzzerpin = _buzzerpin
+		self.ledcirclepin = _ledcirclepin
 		
 	def updateTemperaturelabel(self):
 		while True:
@@ -152,6 +153,7 @@ class Ui_labelWindow(object):
 			herkulex.servo_enabled = 0
 			grovepi.analogWrite(self.peltierfanpin1,0)
 			grovepi.analogWrite(self.peltierfanpin2,0)
+			grovepi.ledCircle_off(self.ledcirclepin)
 			self.peltier1.start(0)
 			self.peltier2.start(0)
 			self.heater.start(0)

@@ -45,6 +45,7 @@ def exitProgram():
 	herkulex.servo_enabled = 0
 	grovepi.analogWrite(peltierfanpin1,0)
 	grovepi.analogWrite(peltierfanpin2,0)
+	grovepi.ledCircle_off(ledcirclepin)
 	peltier1.start(0)
 	peltier2.start(0)
 	heater.start(0)
@@ -76,6 +77,7 @@ if __name__ == "__main__":
 		motor_step_pin = 19
 		motor_enable_pin = 13
 		buzzerpin = 4 #buzzer
+		ledcirclepin = 6 #led circular
 
 		#Servo Motor Configuration
 		herkulex.connect("/dev/ttyS0", 115200)
@@ -114,6 +116,9 @@ if __name__ == "__main__":
 		#Buzzer
 		grovepi.pinMode(buzzerpin,"OUTPUT")
 		grovepi.digitalWrite(buzzerpin,0) #off
+		#LED Circular for Camera
+		grovepi.pinMode(ledcirclepin,"OUTPUT")
+		grovepi.ledCircle_init(ledcirclepin)
 		
 		#Starting Individual Thread
 		#thread.start_new_thread(screen.display, ("ScreenThread",))
@@ -149,6 +154,9 @@ if __name__ == "__main__":
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
 		
+		#Enable LED Circular lights - Camera
+		grovepi.ledCircle_on(ledcirclepin)
+		
 		time.sleep(0.5)
 		print("\n\n\nBoot-up ... Successful\n\n\n")
 		buzzer.beep(buzzerpin, 1)
@@ -162,7 +170,7 @@ if __name__ == "__main__":
 	app = QtWidgets.QApplication(sys.argv)
 	app.aboutToQuit.connect(exitProgram)
 	labelWindow = QtWidgets.QMainWindow()
-	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin)
+	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin, ledcirclepin)
 	ui.setupUi(labelWindow)
 	ui.updateSetpoint_all_threads()
 	labelWindow.show()

@@ -26,7 +26,7 @@
 
 unsigned int CmdMode=0b0000000000000000;
 
-CircularLED::CircularLED( int data,  int clk)
+void CircularLED::begin(int clk, int data)
 {
 _data= data;
 _clk = clk;
@@ -133,7 +133,7 @@ void CircularLED::CircularLEDWrite(unsigned int data[24])
 void CircularLED::ClearDisplay()
 {
   unsigned char i=0;
-  unsigned char f=0;
+  //unsigned char f=0;
   Sent16bit(CmdMode);  
   *PORT_Data &=~ BIT_Data;
   for(i=0;i<192;i++)
@@ -161,5 +161,11 @@ void CircularLED::Latch(void)
   {
     *PORT_Data ^= BIT_Data;
   } 
+}
+
+// Has this instance been initialised?
+bool CircularLED::ready()
+{
+  return _clk != 0;
 }
 //CircularLED circularLED;

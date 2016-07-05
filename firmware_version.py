@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# GrovePi Example for using the Grove LED Bar (http://www.seeedstudio.com/wiki/Grove_-_LED_Bar)
+# GrovePi Example for checking the firmware for the GrovePi
 #
 # The GrovePi connects the Raspberry Pi and Grove sensors.  You can learn more about GrovePi here:  http://www.dexterindustries.com/GrovePi
 #
@@ -32,63 +32,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
-
-import time
+#
+# NOTE: If you get a version of 255.255.255, they try running the script again, if the issue still persists then you are using an old deprecated firmware
 import grovepi
-import random
 
-# Connect the Grove LED Bar to digital port D5
-# DI,DCKI,VCC,GND
-mycircle = 6
+try:
+    print("GrovePi has firmware version: %s" %grovepi.version())
 
-grovepi.pinMode(mycircle,"OUTPUT")
-time.sleep(1)
-i = 0
-
-# LED Bar methods
-# grovepi.ledBar_init(pin,orientation)
-# grovepi.ledBar_orientation(pin,orientation)
-# grovepi.ledBar_setLevel(pin,level)
-# grovepi.ledBar_setLed(pin,led,state)
-# grovepi.ledBar_toggleLed(pin,led)
-# grovepi.ledBar_setBits(pin,state)
-# grovepi.ledBar_getBits(pin)
-
-while True:
-	try:
-		grovepi.ledCircle_init(mycircle)
-		time.sleep(0.5)
-        
-
-		grovepi.ledCircle_on(mycircle)
-		time.sleep(2)
-		'''
-		print ("Test 14) Step")
-		# step through all 10 LEDs
-		for i in range(0,25):
-			grovepi.ledBar_setLevel(ledbar, i)
-			time.sleep(.2)
-		time.sleep(.3)
-		
-		print ("Test 2) Set level")
-		# ledbar_setLevel(pin,level)
-		# level: (0-10)
-		for i in range(0,25):
-			grovepi.ledBar_setLevel(ledbar, i)
-			time.sleep(.2)
-		time.sleep(.3)
-
-		grovepi.ledBar_setLevel(ledbar, 8)
-		time.sleep(.5)
-
-		grovepi.ledBar_setLevel(ledbar, 2)
-		time.sleep(.5)
-
-		grovepi.ledBar_setLevel(ledbar, 5)
-		time.sleep(.5)
-		'''
-	except KeyboardInterrupt:
-		grovepi.ledCircle_off(mycircle)
-		break
-	except IOError:
-		print ("Error")
+except KeyboardInterrupt:
+    print ("KeyboardInterrupt")
+except IOError:
+   print ("Error")

@@ -37,9 +37,10 @@ class CircularLED
   public:
   volatile uint8_t *PORT_Data;
   volatile uint8_t *PORT_Clk;
-  CircularLED(int data, int clk);
+  void begin(int data, int clk);
   void ClearDisplay(void);
   void CircularLEDWrite(unsigned int data[24]);
+  bool ready(); // Has this instance been initialised?
   private:
   void Sent16bit(unsigned int data);
   void Latch(void);
