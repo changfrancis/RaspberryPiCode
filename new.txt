@@ -24,7 +24,10 @@ gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 gauss = cv2.GaussianBlur(gray,(3,3),0)
 edges = cv2.Canny(gray,0,150,apertureSize = 3)
 lines = cv2.HoughLines(edges,1,np.pi/180,50)
-
+# Draw detected blobs as red circles.
+# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
+im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+ 
 for rho,theta in lines[0]:
     a = np.cos(theta)
     b = np.sin(theta)
