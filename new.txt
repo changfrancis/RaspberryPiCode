@@ -1,43 +1,32 @@
 print('Python', python_version())
 https://www.baldengineer.com/raspberry-pi-gui-tutorial.html
 https://www.youtube.com/watch?v=Dmo8eZG5I2w
-
-# capture frames from the camera
-for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-	# grab the raw NumPy array representing the image, then initialize the timestamp
-	# and occupied/unoccupied text
-	image = frame.array
+# Setup SimpleBlobDetector parameters.
+params = cv2.SimpleBlobDetector_Params()
  
-	# show the frame
-	cv2.imshow("Frame", image)
-	key = cv2.waitKey(1) & 0xFF
+# Change thresholds
+params.minThreshold = 10;
+params.maxThreshold = 200;
  
-	# clear the stream in preparation for the next frame
-	rawCapture.truncate(0)
+# Filter by Area.
+params.filterByArea = True
+params.minArea = 1500
  
-	# if the `q` key was pressed, break from the loop
-	if key == ord("q"):
-		break
-
-ret, frame = cap.read()
-gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-gauss = cv2.GaussianBlur(gray,(3,3),0)
-edges = cv2.Canny(gray,0,150,apertureSize = 3)
-lines = cv2.HoughLines(edges,1,np.pi/180,50)
-# Draw detected blobs as red circles.
-# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+# Filter by Circularity
+params.filterByCircularity = True
+params.minCircularity = 0.1
  
-for rho,theta in lines[0]:
-    a = np.cos(theta)
-    b = np.sin(theta)
-    x0 = a*rho
-    y0 = b*rho
-    x1 = int(x0 + 1000*(-b))
-    y1 = int(y0 + 1000*(a))
-    x2 = int(x0 - 1000*(-b))
-    y2 = int(y0 - 1000*(a))
-    cv2.line(frame,(x1,y1),(x2,y2),(0,0,255),2)
-
-cv2.imshow('frame',edges)
-cv2.imshow('frame',frame)
+# Filter by Convexity
+params.filterByConvexity = True
+params.minConvexity = 0.87
+ 
+# Filter by Inertia
+params.filterByInertia = True
+params.minInertiaRatio = 0.01
+ 
+# Create a detector with the parameters
+ver = (cv2.__version__).split('.')
+if int(ver[0]) < 3 :
+    detector = cv2.SimpleBlobDetector(params)
+else : 
+    detector = cv2.SimpleBlobDetector_create(params)
