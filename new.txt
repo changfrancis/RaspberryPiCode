@@ -1,32 +1,16 @@
 print('Python', python_version())
 https://www.baldengineer.com/raspberry-pi-gui-tutorial.html
 https://www.youtube.com/watch?v=Dmo8eZG5I2w
-# Setup SimpleBlobDetector parameters.
-params = cv2.SimpleBlobDetector_Params()
+
  
-# Change thresholds
-params.minThreshold = 10;
-params.maxThreshold = 200;
+def auto_canny(image, sigma=0.33):
+	# compute the median of the single channel pixel intensities
+	v = np.median(image)
  
-# Filter by Area.
-params.filterByArea = True
-params.minArea = 1500
+	# apply automatic Canny edge detection using the computed median
+	lower = int(max(0, (1.0 - sigma) * v))
+	upper = int(min(255, (1.0 + sigma) * v))
+	edged = cv2.Canny(image, lower, upper)
  
-# Filter by Circularity
-params.filterByCircularity = True
-params.minCircularity = 0.1
- 
-# Filter by Convexity
-params.filterByConvexity = True
-params.minConvexity = 0.87
- 
-# Filter by Inertia
-params.filterByInertia = True
-params.minInertiaRatio = 0.01
- 
-# Create a detector with the parameters
-ver = (cv2.__version__).split('.')
-if int(ver[0]) < 3 :
-    detector = cv2.SimpleBlobDetector(params)
-else : 
-    detector = cv2.SimpleBlobDetector_create(params)
+	# return the edged image
+	return edged
