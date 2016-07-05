@@ -140,7 +140,7 @@ if __name__ == "__main__":
 		motorthread.daemon = True
 		motorthread.start()
 		
-		herkulexthread = threading.Thread(target=herkulex.run, args = (servo1,servo2,servo3))
+		herkulexthread = threading.Thread(target=herkulex.run, args = (servo1,servo2,servo3,ledcirclepin))
 		herkulexthread.daemon = True
 		herkulexthread.start()
 		
@@ -153,9 +153,6 @@ if __name__ == "__main__":
 		sensors.adc1_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc2_sensor_enabled = 1 #enable adc reading after thread start
 		sensors.adc3_sensor_enabled = 1 #enable adc reading after thread start
-		
-		#Enable LED Circular lights - Camera
-		grovepi.ledCircle_on(ledcirclepin)
 		
 		time.sleep(0.5)
 		print("\n\n\nBoot-up ... Successful\n\n\n")

@@ -2,6 +2,7 @@ import datetime, time, sys, thread, threading, signal, atexit, serial
 import numpy as np
 from time import sleep
 import RPi.GPIO as GPIO
+import grovepi
 
 # Commands
 EEP_WRITE_REQ = 0x01
@@ -125,7 +126,7 @@ SERPORT = None
 servo_enabled = 1
 filament_dia = 1.75
 
-def run(servo1, servo2, servo3):
+def run(servo1, servo2, servo3, ledcirclepin):
 	global servo_enabled
 	servo1_offset = -50
 	servo2_offset = -50
@@ -147,6 +148,7 @@ def run(servo1, servo2, servo3):
 			servo2.set_servo_angle(servo2_offset+servomove, 150, 0x00) #goaltime is 1 to 255
 			servo3.torque_on()
 			servo3.set_servo_angle(servo3_offset+servomove, 100, 0x00) #goaltime is 1 to 255
+			grovepi.ledCircle_on(ledcirclepin) #Enable LED Circular lights - Camera
 			time.sleep(1)
 		else:
 			clear_errors()

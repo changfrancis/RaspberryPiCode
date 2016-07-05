@@ -5,7 +5,6 @@ import numpy as np
 from time import sleep
 import matplotlib.pyplot as plt
 
-
 def doCanny(input, lowThresh, highThresh, aperture):
 	if input.nChannels != 1:
 		return(0)
@@ -37,7 +36,7 @@ camera.meter_mode = 'average'
 camera.awb_mode = 'auto'
 camera.image_effect = 'none'
 camera.color_effects = None
-camera.rotate = 0
+camera.rotation = 0
 camera.hflip = False
 camera.vflip = False
 camera.resolution = (800, 400)
@@ -54,7 +53,7 @@ while True:
 	camera.capture('image.jpg')
 	img = cv2.imread('image.jpg')
 	edges = cv2.Canny(img,100,200)
-	cv2.imshow(edges)
+	cv2.imshow('image.jpg')
 
 #gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 #cv2.namedWindow('canny demo')
