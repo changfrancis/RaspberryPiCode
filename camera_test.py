@@ -44,6 +44,7 @@ camera.resolution = (210, 400)
 camera.framerate = 8
 rawCapture = PiRGBArray(camera, size=(210, 400))
 time.sleep(0.1)
+
 # capture frames from the camera
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	# grab the raw NumPy array representing the image, then initialize the timestamp

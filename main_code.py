@@ -10,6 +10,7 @@
 
 #GUI Compile command
 #pyuic5 -x mainwindow.ui -o mainwindow.py
+#pyuic5 -x mainwindow_debug.ui -o mainwindow_debug.py
 
 import datetime, time, sys, thread, threading, signal, atexit, serial
 from PyQt5 import QtCore, QtGui, QtWidgets
