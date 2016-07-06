@@ -39,11 +39,12 @@ print "Program Start"
 
 mini = 25
 maxi = 75
+
 camera = PiCamera()
 camera.resolution = (210, 400)
 camera.framerate = 8
 rawCapture = PiRGBArray(camera, size=(210, 400))
-time.sleep(0.1)
+
 
 # capture frames from the camera
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -113,6 +114,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 	# show the frame
 	cv2.imshow("Auto", autoedged)
 	cv2.imshow('Manual', edges)
+	cv2.imwrite("image.jpg", edges)
 	#cv2.imshow('frame', im_with_keypoints)
 	key = cv2.waitKey(1) & 0xFF
 

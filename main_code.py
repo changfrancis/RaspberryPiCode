@@ -30,6 +30,7 @@ import hotend_output
 import herkulex
 from herkulex import servo
 import mainwindow
+import camera_linedetection
 import buzzer
 
 # Exit handlers
@@ -122,8 +123,8 @@ if __name__ == "__main__":
 		grovepi.ledCircle_init(ledcirclepin)
 		
 		#Starting Individual Thread
-		#thread.start_new_thread(screen.display, ("ScreenThread",))
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread
+		thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
 		
 		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1,peltierfanpin1))
 		aircon.daemon = True
