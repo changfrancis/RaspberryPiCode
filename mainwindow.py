@@ -95,38 +95,8 @@ class Ui_labelWindow(object):
 		sys.exit()
 	
 	def turn_on_selected_LED(self):
-		delay = 0.05
-		#grovepi.ledCircle_init(self.ledcirclepin) #Enable LED Circular lights - Camera
-		#grovepi.ledCircle_off(self.ledcirclepin) #Enable LED Circular lights - Camera
-		#time.sleep(delay)
-		#Left
-		grovepi.ledCircleselective_on(self.ledcirclepin, 23)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 0)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 1)
-		time.sleep(delay)
-		#Right
-		grovepi.ledCircleselective_on(self.ledcirclepin, 11)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 12)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 13)
-		time.sleep(delay)
-		#Top
-		grovepi.ledCircleselective_on(self.ledcirclepin, 17)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 18)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 19)
-		time.sleep(delay)
-		#Bottom
-		grovepi.ledCircleselective_on(self.ledcirclepin, 5)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 6)
-		time.sleep(delay)
-		grovepi.ledCircleselective_on(self.ledcirclepin, 7)
-		time.sleep(delay)
+		grovepi.ledCircleintensity(self.ledcirclepin, 10) #intensity is 0-255
+		time.sleep(0.1)
 	
 	def function_scrollFilament(self):
 		buf = self.scrollFilament.value()/100.0

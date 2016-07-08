@@ -387,6 +387,17 @@ void loop()
       ledcircle.CircularLEDWrite(tosenddata);
       delay(2);
     }
+    
+    // [62, pin] //Intensity
+    else if(cmd[0] == 62)
+    {
+      for (unsigned char i = 0; i < 24; i++)
+      {
+          tosenddata[i] = cmd[2]; //ON intensity
+      }  
+      ledcircle.CircularLEDWrite(tosenddata);
+      delay(2);
+    }
     // end Grove LED Circle
 
     // Grove 4 Digit Display (7 segment)

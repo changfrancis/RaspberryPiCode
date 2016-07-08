@@ -18,7 +18,7 @@ mycircle = 6
 grovepi.pinMode(mycircle,"OUTPUT")
 grovepi.ledCircle_init(mycircle)
 time.sleep(0.2)
-grovepi.ledCircle_on(mycircle)
+grovepi.ledCircleintensity(mycircle,200)
 time.sleep(0.1)
 
 x_resolution = 1080
