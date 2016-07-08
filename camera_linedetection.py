@@ -41,6 +41,7 @@ def run(camera):
 	camera = PiCamera()
 	camera.resolution =  (imageWidth, imageHeight)
 	camera.framerate = 8
+	camera.rotation = 90
 	rawCapture = PiRGBArray(camera, size= (imageWidth, imageHeight))
 	time.sleep(1)
 	print("hi")

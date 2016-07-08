@@ -3,10 +3,16 @@
 # use "git add xxx.py" ,to add new files
 # git commit -a 
 # hit enter, key-in some comments
-# git push 
+# git push
 # hit enter, key-in user and password
 # user: changfrancis@hotmail.com
 # pw: 8524879j
+
+#Arduin Firmware, click tick to compile
+#xxxx.hex file shoud be inside /Tmp/BuildXXXXXXXXXX.tmp
+#copy the file to GrovePi/Firmware
+#rename to francis.hex
+#flash using firmware_update_francis_custom.sh
 
 #GUI Compile command
 #pyuic5 -x mainwindow.ui -o mainwindow.py

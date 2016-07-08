@@ -84,6 +84,9 @@ char tx_msg_buffer[tx433_buffer_max_size]; // static buffer for message storage
 byte tx_msg_buffer_len = 0; // length of message to send
 byte tx_msg_buffer_idx = 0; // current position in buffer while filling it
 
+//Circular LED 
+unsigned int tosenddata[24];
+
 void setup()
 {
     //Serial.begin(38400);         // start serial for output
@@ -321,29 +324,60 @@ void loop()
     {
       // clock pin is always next to the data pin
       ledcircle.begin(cmd[1], cmd[1]+1); // clock, data, orientation
+      for (unsigned char i = 0; i < 24; i++)
+      {
+          tosenddata[i] = 0x00; //All ON
+      } 
     }
      
     // [58, pin] //All ON
     else if(cmd[0] == 58)
     {
-      unsigned int tosend[24];
       for (unsigned char i = 0; i < 24; i++)
       {
-          tosend[i] = 0xFF; //All ON
+          tosenddata[i] = 0xFF; //All ON
       }  
-      ledcircle.CircularLEDWrite(tosend);
+      ledcircle.CircularLEDWrite(tosenddata);
     }
     
     // [59, pin] //All OFF
     else if(cmd[0] == 59)
     {
-      unsigned int tosend[24];
       for (unsigned char i = 0; i < 24; i++)
       {
-          tosend[i] = 0x00; //All OFF
+          tosenddata[i] = 0x00; //All OFF
       }  
-      ledcircle.CircularLEDWrite(tosend);
+      ledcircle.CircularLEDWrite(tosenddata);
     }
+    
+    // [60, pin] //Selective ON
+    else if(cmd[0] == 60)
+    {
+      for (unsigned char i = 0; i < 24; i++)
+      {
+        if(cmd[2] == i)
+        {
+          tosenddata[i] = 0xFF; //ON
+        }
+      }  
+      ledcircle.CircularLEDWrite(tosenddata);
+    }
+    
+    // [61, pin] //Selective OFF
+    else if(cmd[0] == 61)
+    {
+      for (unsigned char i = 0; i < 24; i++)
+      {
+        if(cmd[2] == i)
+        {
+          tosenddata[i] = 0x00; //OFF
+        }
+      }  
+      ledcircle.CircularLEDWrite(tosenddata);
+    }
+    
+    
+    
     // end Grove LED Circle
 
     // Grove 4 Digit Display (7 segment)

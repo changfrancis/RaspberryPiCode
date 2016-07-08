@@ -41,6 +41,7 @@ class Ui_labelWindow(object):
 			self.labelReadColdblock.setText("{:.1f} C".format(sensors.adc2_temp_cur))
 			self.labelReadHotend.setText("{:.1f} C".format(sensors.adc3_temp_cur))
 			#update image.jpg, havent write
+			'''
 			if(camera_linedetection.write_complete_flag):
 				self.labelPic1.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_auto.jpg"))
 				self.labelPic2.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_original.jpg"))
@@ -48,6 +49,7 @@ class Ui_labelWindow(object):
 			#img = camera_linedetection.cur_image
 			#myImage = QtGui.QImage(img.data, img.shape[1], img.shape[0], bytePerLine, QImage.Format_RGB888)
 			#self.labelPic4.setPixmap(QtGui.QPixmap.fromImage(myImage))
+			'''
 			time.sleep(1) #update rate is set to x seconds
 	
 	def function_refreshCameravale(self):
@@ -151,7 +153,7 @@ class Ui_labelWindow(object):
 		if(self.motorStart == 0):
 			self.motorStart = 1
 			#print("on")
-			self.btnmotorStart.setStyleSheet("background-color: rgb(0,0,255);") #b,g,r format
+			self.btnmotorStart.setStyleSheet("background-color: rgb(255,0,0);") #b,g,r format
 			self.btnmotorStart.setText("Stop")
 			stepper_output.motor_enabled = 1
 		elif(self.motorStart == 1):
@@ -201,7 +203,7 @@ class Ui_labelWindow(object):
 
 	def setupUi(self, labelWindow):
 		labelWindow.setObjectName("labelWindow")
-		labelWindow.resize(480, 800)
+		labelWindow.resize(480, 728) #480, 800 offset 36, 740
 		labelWindow.move(0,0)
 		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 		sizePolicy.setHorizontalStretch(0)
@@ -216,7 +218,7 @@ class Ui_labelWindow(object):
 		self.centralWidget.setSizePolicy(sizePolicy)
 		self.centralWidget.setObjectName("centralWidget")
 		self.tabMenu = QtWidgets.QTabWidget(self.centralWidget)
-		self.tabMenu.setGeometry(QtCore.QRect(0, 0, 481, 740))
+		self.tabMenu.setGeometry(QtCore.QRect(0, 0, 481, 720))
 		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 		sizePolicy.setHorizontalStretch(0)
 		sizePolicy.setVerticalStretch(0)
@@ -226,14 +228,14 @@ class Ui_labelWindow(object):
 		self.ControlTab = QtWidgets.QWidget()
 		self.ControlTab.setObjectName("ControlTab")
 		self.btnEstop = QtWidgets.QPushButton(self.ControlTab)
-		self.btnEstop.setGeometry(QtCore.QRect(340, 470, 121, 221))
+		self.btnEstop.setGeometry(QtCore.QRect(340, 470, 121, 150))
 		font = QtGui.QFont()
 		font.setPointSize(25)
 		self.btnEstop.setFont(font)
 		self.btnEstop.setDefault(True)
 		self.btnEstop.setObjectName("btnEstop")
 		self.boxSetTarget = QtWidgets.QGroupBox(self.ControlTab)
-		self.boxSetTarget.setGeometry(QtCore.QRect(0, 0, 321, 700))
+		self.boxSetTarget.setGeometry(QtCore.QRect(0, 0, 321, 720))
 		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 		sizePolicy.setHorizontalStretch(0)
 		sizePolicy.setVerticalStretch(0)
@@ -398,7 +400,7 @@ class Ui_labelWindow(object):
 		self.scrollFilament = QtWidgets.QScrollBar(self.boxSetTarget)
 		self.scrollFilament.setGeometry(QtCore.QRect(220, 20, 40, 100))
 		self.scrollFilament.setAutoFillBackground(False)
-		self.scrollFilament.setMinimum(160)
+		self.scrollFilament.setMinimum(130)
 		self.scrollFilament.setMaximum(210)
 		self.scrollFilament.setPageStep(1)
 		self.scrollFilament.setSliderPosition(175)
@@ -415,13 +417,13 @@ class Ui_labelWindow(object):
 		self.btnONAircon.setFont(font)
 		self.btnONAircon.setObjectName("btnONAircon")
 		self.btnDirection = QtWidgets.QPushButton(self.boxSetTarget)
-		self.btnDirection.setGeometry(QtCore.QRect(170, 570, 140, 120))
+		self.btnDirection.setGeometry(QtCore.QRect(170, 570, 140, 50))
 		font = QtGui.QFont()
 		font.setPointSize(25)
 		self.btnDirection.setFont(font)
 		self.btnDirection.setObjectName("btnDirection")
 		self.btnmotorStart = QtWidgets.QPushButton(self.boxSetTarget)
-		self.btnmotorStart.setGeometry(QtCore.QRect(10, 570, 140, 120))
+		self.btnmotorStart.setGeometry(QtCore.QRect(10, 570, 140, 50))
 		font = QtGui.QFont()
 		font.setPointSize(25)
 		self.btnmotorStart.setFont(font)
@@ -791,7 +793,7 @@ class Ui_labelWindow(object):
 		
 		#My code for functions
 		self.btnEstop.clicked.connect(self.function_Estop)
-		self.btnEstop.setStyleSheet("background-color: rgb(0,0,255);")
+		self.btnEstop.setStyleSheet("background-color: rgb(255,0,0);")
 		self.btnONAircon.clicked.connect(self.function_ONaircon)
 		self.btnOFFAircon.clicked.connect(self.function_OFFaircon)
 		self.btnONColdblock.clicked.connect(self.function_ONcoldblock)

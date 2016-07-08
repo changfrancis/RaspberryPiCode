@@ -113,6 +113,10 @@ ledCirleInit_cmd = [57]
 ledCirleON_cmd = [58]
 # offLED
 ledCirleOFF_cmd = [59]
+# selective ON LED
+ledCirleSelectiveON_cmd = [60]
+# selective OFF LED
+ledCirleSelectiveOFF_cmd = [61]
 
 # Grove 4 Digit Display commands
 # Initialise
@@ -393,7 +397,17 @@ def ledCircle_on(pin):
 def ledCircle_off(pin):
 	write_i2c_block(address, ledCirleOFF_cmd + [pin, unused, unused])
 	return 1
-
+	
+# Grove LED Circle -write the leds
+def ledCircleselective_on(pin, value):
+	write_i2c_block(address, ledCirleSelectiveON_cmd + [pin, value, unused])
+	return 1
+	
+# Grove LED Circle -write the leds
+def ledCircleselective_off(pin, value):
+	write_i2c_block(address, ledCirleSelectiveOFF_cmd + [pin, value, unused])
+	return 1
+	
 # Grove 4 Digit Display - initialise
 def fourDigit_init(pin):
 	write_i2c_block(address, fourDigitInit_cmd + [pin, unused, unused])
