@@ -127,11 +127,11 @@ alive = 1
 servo_enabled = 1
 filament_dia = 1.75
 
-def run(servo1, servo2, servo3, ledcirclepin):
+def run(servo1, servo2, servo3):
 	global servo_enabled
-	servo1_offset = -50
-	servo2_offset = -50
-	servo3_offset = -50
+	servo1_offset = 0
+	servo2_offset = 0
+	servo3_offset = 0
 	print("Herkulex Servo Thread ... Started")
 	next_call = time.time()
 	clear_errors()
@@ -151,7 +151,6 @@ def run(servo1, servo2, servo3, ledcirclepin):
 			servo2.set_servo_angle(servo2_offset+servomove, 150, 0x00) #goaltime is 1 to 255
 			servo3.torque_on()
 			servo3.set_servo_angle(servo3_offset+servomove, 100, 0x00) #goaltime is 1 to 255
-			grovepi.ledCircle_on(ledcirclepin) #Enable LED Circular lights - Camera
 			time.sleep(1)
 		else:
 			clear_errors()

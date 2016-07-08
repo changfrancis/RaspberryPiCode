@@ -54,23 +54,38 @@ i = 0
 # grovepi.ledBar_setBits(pin,state)
 # grovepi.ledBar_getBits(pin)
 
+grovepi.ledCircle_init(mycircle)
+time.sleep(0.5)
 
 while True:
 	try:
-		grovepi.ledCircle_init(mycircle)
-		time.sleep(0.5)
+		
 
-		for i in range(0,25):
+		grovepi.ledCircleselective_on(mycircle, 0)
+		time.sleep(0.1)
+		grovepi.ledCircleselective_on(mycircle, 22)
+		time.sleep(0.1)
+		grovepi.ledCircleselective_on(mycircle, 4)
+		time.sleep(0.1)
+		grovepi.ledCircleselective_on(mycircle, 5)
+		time.sleep(0.1)
+		grovepi.ledCircleselective_on(mycircle, 10)
+		time.sleep(0.1)
+		grovepi.ledCircleselective_on(mycircle, 8)
+		time.sleep(0.1)
+		'''
+		for i in range(0,23):
 			print(i)
 			grovepi.ledCircleselective_on(mycircle, i)
 			time.sleep(.2)
 		time.sleep(.3)
 		
-		for i in range(0,25):
+		for i in range(0,23):
 			print(i)
 			grovepi.ledCircleselective_off(mycircle, i)
 			time.sleep(.2)
 		time.sleep(.3)
+		'''
 		'''
 		print ("Test 14) Step")
 		# step through all 10 LEDs

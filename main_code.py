@@ -138,7 +138,7 @@ if __name__ == "__main__":
 		
 		#Starting Individual Thread
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread
-		thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
+		#thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
 	
 		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1,peltierfanpin1))
 		aircon.daemon = True
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 		motorthread.daemon = True
 		motorthread.start()
 		
-		herkulexthread = threading.Thread(target=herkulex.run, args = (servo1,servo2,servo3,ledcirclepin))
+		herkulexthread = threading.Thread(target=herkulex.run, args = (servo1,servo2,servo3))
 		herkulexthread.daemon = True
 		herkulexthread.start()
 		

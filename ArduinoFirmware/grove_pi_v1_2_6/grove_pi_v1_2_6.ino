@@ -338,6 +338,7 @@ void loop()
           tosenddata[i] = 0xFF; //All ON
       }  
       ledcircle.CircularLEDWrite(tosenddata);
+      delay(2);
     }
     
     // [59, pin] //All OFF
@@ -348,6 +349,7 @@ void loop()
           tosenddata[i] = 0x00; //All OFF
       }  
       ledcircle.CircularLEDWrite(tosenddata);
+      delay(2);
     }
     
     // [60, pin] //Selective ON
@@ -359,8 +361,13 @@ void loop()
         {
           tosenddata[i] = 0xFF; //ON
         }
+        else
+        {
+          tosenddata[i] = tosenddata[i];
+        }
       }  
       ledcircle.CircularLEDWrite(tosenddata);
+      delay(2);
     }
     
     // [61, pin] //Selective OFF
@@ -372,12 +379,14 @@ void loop()
         {
           tosenddata[i] = 0x00; //OFF
         }
+        else
+        {
+          tosenddata[i] = tosenddata[i];
+        }
       }  
       ledcircle.CircularLEDWrite(tosenddata);
+      delay(2);
     }
-    
-    
-    
     // end Grove LED Circle
 
     // Grove 4 Digit Display (7 segment)

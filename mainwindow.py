@@ -94,6 +94,40 @@ class Ui_labelWindow(object):
 		time.sleep(1.5)
 		sys.exit()
 	
+	def turn_on_selected_LED(self):
+		delay = 0.05
+		#grovepi.ledCircle_init(self.ledcirclepin) #Enable LED Circular lights - Camera
+		#grovepi.ledCircle_off(self.ledcirclepin) #Enable LED Circular lights - Camera
+		#time.sleep(delay)
+		#Left
+		grovepi.ledCircleselective_on(self.ledcirclepin, 23)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 0)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 1)
+		time.sleep(delay)
+		#Right
+		grovepi.ledCircleselective_on(self.ledcirclepin, 11)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 12)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 13)
+		time.sleep(delay)
+		#Top
+		grovepi.ledCircleselective_on(self.ledcirclepin, 17)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 18)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 19)
+		time.sleep(delay)
+		#Bottom
+		grovepi.ledCircleselective_on(self.ledcirclepin, 5)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 6)
+		time.sleep(delay)
+		grovepi.ledCircleselective_on(self.ledcirclepin, 7)
+		time.sleep(delay)
+	
 	def function_scrollFilament(self):
 		buf = self.scrollFilament.value()/100.0
 		self.lcdFilament.setProperty("value", buf)
@@ -832,6 +866,7 @@ class Ui_labelWindow(object):
 		self.scrollControl7.valueChanged.connect(self.function_refreshCameravale)
 		self.scrollControl8.valueChanged.connect(self.function_refreshCameravale)
 		self.scrollControl9.valueChanged.connect(self.function_refreshCameravale)
+		self.turn_on_selected_LED()
 		
 		#Update sensor display thread
 		updateLabel = threading.Thread(target=self.updateTemperaturelabel)
