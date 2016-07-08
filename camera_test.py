@@ -1,6 +1,6 @@
 #from picamera.array import PiRGBArray
 import picamera 
-from picamera.array import PiRGBArray
+import picamera.array
 import io
 import cv2
 import time
@@ -10,18 +10,7 @@ import matplotlib.pyplot as plt
 import math
 import time
 import grovepi
-from PIL import Image
-
-def auto_canny(image, sigma=0.33):
-	# compute the median of the single channel pixel intensities
-	v = numpy.median(image)
- 
-	# apply automatic Canny edge detection using the computed median
-	lower = int(max(25, (1.0 - sigma) * v))
-	upper = int(min(75, (1.0 + sigma) * v))
-	edged = cv2.Canny(image, lower, upper)
-	# return the edged image
-	return edged
+import PIL
 
 print "OpenCV Version:", cv2.__version__
 print "Program Start"
@@ -30,38 +19,111 @@ grovepi.pinMode(mycircle,"OUTPUT")
 grovepi.ledCircle_init(mycircle)
 time.sleep(0.2)
 grovepi.ledCircle_on(mycircle)
-time.sleep(0.2)
+time.sleep(0.3)
 
-#x_resolution = 1080
-#y_resolution = 1920
-#x_crop1 = 282
-#x_crop2 = 619
-#y_crop1 = 360
-#y_crop2 = 1920
-
+x_resolution = 1080
+y_resolution = 1920
+x_crop1 = 282
+x_crop2 = 619
+y_crop1 = 360
+y_crop2 = 1920
+'''
 x_resolution = 480
 y_resolution = 640
 x_crop1 = 125
 x_crop2 = 275
 y_crop1 = 120
 y_crop2 = 640
+'''
+def auto_canny(image, sigma=0.25):
+	# compute the median of the single channel pixel intensities
+	v = numpy.median(image)
+ 
+	# apply automatic Canny edge detection using the computed median
+	lower = int(max(0, (1.0 - sigma) * v))
+	upper = int(min(255, (1.0 + sigma) * v))
+	edged = cv2.Canny(image, lower, upper)
+	# return the edged image
+	return edged
 
-stream = io.BytesIO()
+# Create the in-memory stream
+def get_image():
+	stream = io.BytesIO()
+	with picamera.PiCamera() as camera:
+		camera.resolution = (x_resolution, y_resolution)
+		camera.rotation = 90
+		with picamera.array.PiRGBArray(camera) as stream:
+			camera.capture(stream, format='bgr')
+			image = stream.array
+		camera.close()
+	return image
+
+try:
+	while True:
+		image = get_image()
+		crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
+		#print(type(image))
+		gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
+		gauss = cv2.GaussianBlur(gray,(3,3),0)
+		autoedged = auto_canny(gauss)
+		edged = cv2.Canny(gauss, 25, 75)
+		lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=500, maxLineGap=300)
+		print(len(lines))
+		img = edged.copy()
+		if(len(lines) > 0):
+			#print(lines)
+			counter = 0
+			for line in lines:
+				#print(line)
+				#print(line[0])
+				cv2.line(crop_image,(line[0][0],line[0][1]),(line[0][2],line[0][3]),(0,255,0),5)
+				counter = counter + 1
+				if(counter > 10):
+					break
+		cv2.imshow("Auto", autoedged)
+		cv2.imshow("manual", crop_image)
+		#cv2.imwrite("image1.jpg", image)
+		cv2.waitKey(1)
+		time.sleep(0.01)
+
+except KeyboardInterrupt:
+	grovepi.ledCircle_off(mycircle)
+	time.sleep(0.2)
+
+except Exception, e:
+	print(str(e))
+	grovepi.ledCircle_off(mycircle)
+	time.sleep(0.2)
+
 '''
-with picamera.PiCamera() as camera:
-	#camera = PiCamera()
-	camera.resolution = (x_resolution,y_resolution) #(1080,1920) max resolution of 30 fps but can pi prcoess other information fast enough ?
-	camera.rotation = 90
-	camera.capture(stream, format='jpeg')
-	#camera.crop = (10, 10, 0.1, 0.1)
-'''
-camera = picamera.PiCamera()
-camera.resolution = (x_resolution,y_resolution)
-camera.rotation = 90
-camera.framerate = 8
-camera.start_preview()
-time.sleep(2)
-rawCapture = PiRGBArray(camera)
+try:
+		#camera.crop = (10, 10, 0.1, 0.1)
+	time.sleep(0.2)
+
+except KeyboardInterrupt:
+	grovepi.ledCircle_off(mycircle)
+	time.sleep(0.2)
+	#camera.close()
+
+except Exception, e:
+	print(str(e))
+	grovepi.ledCircle_off(mycircle)
+	time.sleep(0.2)
+
+		buff = numpy.fromstring(stream.getvalue(), dtype=numpy.uint8)
+		image = cv2.imdecode(buff,1)
+		crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
+		gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
+		gauss = cv2.GaussianBlur(gray,(3,3),0)
+		autoedged = auto_canny(gauss)
+		cv2.imshow("Auto", autoedged)
+		time.sleep(1)
+		cv2.imwrite("image1.jpg", autoedged)
+		cv2.imwrite("image2.jpg", crop_image)
+		cv2.waitKey(1)
+		# clear the stream in preparation for the next frame
+		stream.truncate(0)
+		print("hi")
 
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	buff = frame.array
@@ -79,39 +141,6 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 	rawCapture.truncate(0)
 	print("hi")
 	#time.sleep(0.5)
-
-
-try:	
-	#for frame in camera.capture_continuous(stream, format="jpeg"):
-	while True:
-		buff = numpy.fromstring(stream.getvalue(), dtype=numpy.uint8)
-		image = cv2.imdecode(buff,1)
-		crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
-		gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
-		gauss = cv2.GaussianBlur(gray,(3,3),0)
-		autoedged = auto_canny(gauss)
-		cv2.imshow("Auto", autoedged)
-		time.sleep(1)
-		cv2.imwrite("image1.jpg", autoedged)
-		cv2.imwrite("image2.jpg", crop_image)
-		cv2.waitKey(1)
-		# clear the stream in preparation for the next frame
-		stream.truncate(0)
-		print("hi")
-
-except KeyboardInterrupt:
-	grovepi.ledCircle_off(mycircle)
-	time.sleep(0.2)
-	camera.close()
-
-except Exception, e:
-	print(str(e))
-	grovepi.ledCircle_off(mycircle)
-	time.sleep(0.2)
-	camera.close()
-	
-
-'''
 mini = 25
 maxi = 75
 
