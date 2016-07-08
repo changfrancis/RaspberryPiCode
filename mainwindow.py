@@ -77,8 +77,16 @@ class Ui_labelWindow(object):
 			print("update set point")
 	
 	def function_Exit(self):
+		print("Exiting...type2\n\n\n")
 		buzzer.beep_click(self.buzzerpin)
 		self.function_Estop()
+		herkulex.alive = 0
+		stepper_output.alive = 0
+		coldblock_output.alive = 0
+		hotend_output.alive = 0
+		aircon_output.alive = 0
+		sensors.alive = 0
+		time.sleep(1.0)
 		sensors.ambience_sensor_enabled = 0 
 		sensors.adc1_sensor_enabled = 0 
 		sensors.adc2_sensor_enabled = 0 
@@ -186,6 +194,7 @@ class Ui_labelWindow(object):
 			grovepi.analogWrite(self.peltierfanpin1,0)
 			grovepi.analogWrite(self.peltierfanpin2,0)
 			grovepi.ledCircle_off(self.ledcirclepin)
+			time.sleep(0.1)
 			self.peltier1.start(0)
 			self.peltier2.start(0)
 			self.heater.start(0)

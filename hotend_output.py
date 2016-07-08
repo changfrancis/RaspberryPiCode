@@ -6,6 +6,7 @@ import sensors
 import grovepi
 
 #Enable Variables
+alive = 1
 hotend_enabled = 0
 hotend_setpoint = 25.0 #lower safer
 
@@ -17,7 +18,7 @@ def run(heaterpin, heater):
 	hotendPID.setSampleTime(0)
 	print("Hotend PID ... Started")
 	next_call = time.time()
-	while True:
+	while(alive):
 		hotendPID.SetPoint = hotend_setpoint #target temperature in degree
 		hotendPID.update(sensors.adc3_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
@@ -42,6 +43,7 @@ def run(heaterpin, heater):
 				heater.start(0)
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
+	heater.start(0)
 	
 class PIDclass:
     """PID Controller

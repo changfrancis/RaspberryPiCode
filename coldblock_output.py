@@ -6,6 +6,7 @@ import sensors
 import grovepi
 
 #Enable Variables
+alive = 1
 coldblock_enabled = 0
 coldblock_setpoint = 35.0 #higher safer
 
@@ -17,7 +18,7 @@ def run(peltierpin2, peltier2, peltierfanpin2):
 	coldblockPID.setSampleTime(0)
 	print("Coldblock PID ... Started")
 	next_call = time.time()
-	while True:
+	while(alive):
 		coldblockPID.SetPoint = coldblock_setpoint #target temperature in degree
 		coldblockPID.update(sensors.adc2_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
@@ -48,6 +49,7 @@ def run(peltierpin2, peltier2, peltierfanpin2):
 					grovepi.analogWrite(peltierfanpin2,0) #off
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
+	peltier2.start(0)
 	
 class PIDclass:
     """PID Controller

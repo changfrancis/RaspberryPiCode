@@ -44,7 +44,6 @@ def run(camera):
 	camera.rotation = 90
 	rawCapture = PiRGBArray(camera, size= (imageWidth, imageHeight))
 	time.sleep(1)
-	print("hi")
 	counter = 1
 	for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 		image = frame.array
@@ -67,14 +66,14 @@ def run(camera):
 		counter = counter + 1
 		if(counter % 10 == 0):
 			write_complete_flag = 0
-			cv2.imwrite("/home/pi/Desktop/MyCode/image_auto.jpg", autoedged)
-			cv2.imwrite("/home/pi/Desktop/MyCode/image_original.jpg", image)
-			cv2.imwrite("/home/pi/Desktop/MyCode/image_gray.jpg", gray)
+			#cv2.imwrite("/home/pi/Desktop/MyCode/image_auto.jpg", autoedged)
+			#cv2.imwrite("/home/pi/Desktop/MyCode/image_original.jpg", image)
+			#cv2.imwrite("/home/pi/Desktop/MyCode/image_gray.jpg", gray)
 			print("update image")
 			counter = 1
 			write_complete_flag = 1
 		cv2.imshow("Auto", autoedged)
-		time.sleep(0.5)
+		time.sleep(1)
 	#camera.close()
 	
 class LineDetection:

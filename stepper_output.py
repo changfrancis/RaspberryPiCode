@@ -7,6 +7,7 @@ import grovepi
 import math
 
 #Enable Variables
+alive = 1
 motor_enabled = 0
 motor_direction = 1
 motor_feedrate = 10
@@ -16,7 +17,7 @@ def run(dir_pin, step_pin, enable_pin):
 	motor = Stepper(dir_pin, step_pin, enable_pin) #dir_pin, step_pin, enable_pin
 	print("Motor Thread ... Started")
 	next_call = time.time()
-	while True:	
+	while(alive):	
 		while(motor_enabled == 0):
 			time.sleep(0.25)
 			motor.set_off()

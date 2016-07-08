@@ -6,6 +6,7 @@ import sensors
 import grovepi
 
 #Enable Variables
+alive = 1
 aircon_enabled = 0
 aircon_setpoint = 35.0 #higher safer
 
@@ -17,7 +18,7 @@ def run(peltierpin1, peltier1, peltierfanpin1):
 	airconPID.setSampleTime(0)
 	print("Aircon PID ... Started")
 	next_call = time.time()
-	while True:
+	while(alive):
 		airconPID.SetPoint = aircon_setpoint #target temperature in degree
 		airconPID.update(sensors.adc1_temp_cur) #peltier blue 
 		#print datetime.datetime.now()
@@ -54,6 +55,7 @@ def run(peltierpin1, peltier1, peltierfanpin1):
 					grovepi.analogWrite(peltierfanpin1,0) #off
 		next_call = next_call + 1
 		time.sleep(next_call - time.time())
+	peltier1.start(0)
 	
 class PIDclass:
     """PID Controller

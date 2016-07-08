@@ -3,6 +3,7 @@ import grove_i2c_temp_hum_mini
 import grove_i2c_adc
 
 #Ambience Sensors
+alive = 1
 ht_sensor = grove_i2c_temp_hum_mini.th02()
 ambience_sensor_enabled = 0
 ambience_temp = 25
@@ -28,9 +29,9 @@ temperaturetable = [[-50,8],[-40,16],[-30,32],[-20,60],[-10,107],[0,183],[10,299
 
 def read_sensors(threadName):
 	print("Starting " + threadName)
-	global ambience_sensor_enabled, ambience_temp, ambience_humidity, adc1_sensor_enabled, adc1_temp_cur, adc1_temp_old, adc2_sensor_enabled, adc2_temp_cur, adc2_temp_old, adc3_sensor_enabled, adc3_temp_cur, adc3_temp_old
+	global alive, ambience_sensor_enabled, ambience_temp, ambience_humidity, adc1_sensor_enabled, adc1_temp_cur, adc1_temp_old, adc2_sensor_enabled, adc2_temp_cur, adc2_temp_old, adc3_sensor_enabled, adc3_temp_cur, adc3_temp_old
 	counter = 0
-	while True:
+	while(alive):
 		if(ambience_sensor_enabled == 1) and (counter % 20 == 0):
 			ambience_temp = ht_sensor.getTemperature()
 			time.sleep(0.1) 

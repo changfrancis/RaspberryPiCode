@@ -123,6 +123,7 @@ BYTE2 = 0x02
 BROADCAST_ID = 0xFE
 SERPORT = None
 
+alive = 1
 servo_enabled = 1
 filament_dia = 1.75
 
@@ -134,10 +135,12 @@ def run(servo1, servo2, servo3, ledcirclepin):
 	print("Herkulex Servo Thread ... Started")
 	next_call = time.time()
 	clear_errors()
+	time.sleep(0.1)
 	servo1.torque_on()
 	servo2.torque_on()
 	servo1.torque_on()
-	while True:
+	time.sleep(0.5)
+	while(alive):
 		if(servo_enabled):
 			clear_errors()
 			servomove = ((filament_dia - 1.75) / 0.01) * 3.0
@@ -154,10 +157,14 @@ def run(servo1, servo2, servo3, ledcirclepin):
 			clear_errors()
 			servo1.torque_off()
 			servo2.torque_off()	
-			servo2.torque_off()		
-			time.sleep(0.25)
+			servo2.torque_off()	
+			time.sleep(0.75)
 		#next_call = next_call + 1
 		#time.sleep(next_call - time.time())
+	servo1.torque_off()
+	servo2.torque_off()	
+	servo2.torque_off()	
+	time.sleep(0.75)
 
 def connect(portname, baudrate):
     """ Connect to the Herkulex bus

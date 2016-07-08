@@ -41,7 +41,17 @@ import buzzer
 
 # Exit handlers
 def exitProgram():
-	print("Exiting...\n\n\n")
+	print("Exiting...type1\n\n\n")
+	herkulex.alive = 0
+	stepper_output.alive = 0
+	coldblock_output.alive = 0
+	hotend_output.alive = 0
+	aircon_output.alive = 0
+	sensors.alive = 0
+	herkulex.clear_errors()
+	servo1.torque_off()
+	servo2.torque_off()
+	servo3.torque_off()
 	sensors.ambience_sensor_enabled = 0 
 	sensors.adc1_sensor_enabled = 0 
 	sensors.adc2_sensor_enabled = 0 
@@ -51,21 +61,19 @@ def exitProgram():
 	hotend_output.hotend_enabled = 0 
 	stepper_output.motor_enabled = 0
 	herkulex.servo_enabled = 0
+	time.sleep(1.0)
 	grovepi.analogWrite(peltierfanpin1,0)
 	grovepi.analogWrite(peltierfanpin2,0)
 	grovepi.ledCircle_off(ledcirclepin)
+	time.sleep(0.2)
 	peltier1.start(0)
 	peltier2.start(0)
 	heater.start(0)
 	GPIO.output(motor_enable_pin,1) #set H to disable
 	GPIO.output(motor_dir_pin,0) #set H to disable
 	GPIO.output(motor_step_pin,0) #set H to disable
-	herkulex.clear_errors()
-	servo1.torque_off()
-	servo2.torque_off()
-	servo3.torque_off()
 	herkulex.close()
-	GPIO.cleanup()
+	#GPIO.cleanup()
 	time.sleep(1.5)
 	sys.exit(0)
 	
@@ -131,7 +139,7 @@ if __name__ == "__main__":
 		#Starting Individual Thread
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread
 		thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
-		
+	
 		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1,peltierfanpin1))
 		aircon.daemon = True
 		aircon.start()
@@ -180,7 +188,6 @@ if __name__ == "__main__":
 	ui.updateSetpoint_all_threads()
 	labelWindow.show()
 	sys.exit(app.exec_())
-	GPIO.cleanup()
 	
 	'''
 	while True:
