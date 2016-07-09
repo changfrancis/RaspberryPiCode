@@ -1010,7 +1010,7 @@
       <property name="title">
        <string>Camera View</string>
       </property>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="labelCameraview">
        <property name="geometry">
         <rect>
          <x>5</x>
@@ -1092,7 +1092,7 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QLabel" name="labelLinelenght">
+      <widget class="QLabel" name="labelLinelength">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -1185,7 +1185,7 @@
         <string>Camera On</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="spinLinelenght">
+      <widget class="QSpinBox" name="spinLinelength">
        <property name="geometry">
         <rect>
          <x>100</x>
