@@ -59,7 +59,9 @@ time.sleep(0.5)
 
 while True:
 	try:
-		grovepi.ledCircleintensity(mycircle, 25)
+		grovepi.ledCircle_on(mycircle)
+		time.sleep(0.5)
+		grovepi.ledCircle_off(mycircle)
 		time.sleep(0.5)
 		'''
 		grovepi.ledCircleselective_on(mycircle, 0)

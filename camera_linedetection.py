@@ -21,8 +21,11 @@ x_crop2 = 619
 y_crop1 = 360
 y_crop2 = 1920
 imgPath01 = 0
+edgesigma = 0.25
+LineLength = 500
+LineGap = 300
 
-def auto_canny(image, sigma=0.25):
+def auto_canny(image, sigma):
 	# compute the median of the single channel pixel intensities
 	v = numpy.median(image)
  
@@ -46,26 +49,21 @@ def get_image():
 	return image
 
 def run(cameraThread):  
-	global imgPath01
+	global imgPath01, edgesigma, minLineLength, maxLineGap
 	print(cameraThread + " ... Started")
-	#cv2.startWindowThread()
-	#cv2.namedWindow("Auto")
-	#cv2.namedWindow("manual")
-	#cv2.moveWindow("Auto",480,0)
-	#cv2.moveWindow("manual",800,0)
 	while(alive):
 		image = get_image()
 		crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
 		#print(type(image))
 		gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
 		gauss = cv2.GaussianBlur(gray,(3,3),0)
-		autoedged = auto_canny(gauss)
+		autoedged = auto_canny(gauss, edgesigma)
 		edged = cv2.Canny(gauss, 25, 75)
-		lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=500, maxLineGap=300)
+		lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=LineLength, maxLineGap=LineGap)
 		img = edged.copy()
 		if(lines is not None):
 			if(len(lines) > 0):
-				print(len(lines))
+				#print(len(lines))
 				counter = 0
 				for line in lines:
 					#print(line)
@@ -80,7 +78,7 @@ def run(cameraThread):
 		#cv2.imshow("manual", crop_image)
 		#cv2.imwrite("image1.jpg", image)
 		#cv2.waitKey(0)
-		time.sleep(1)
+		time.sleep(0.5)
 	
 class LineDetection:
     """LineDetection Controller

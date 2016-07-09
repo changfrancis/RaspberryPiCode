@@ -137,7 +137,6 @@ if __name__ == "__main__":
 		grovepi.digitalWrite(buzzerpin,0) #off
 		#LED Circular for Camera
 		grovepi.pinMode(ledcirclepin,"OUTPUT")
-		grovepi.ledCircle_init(ledcirclepin)
 		
 		#Starting Individual Thread
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread

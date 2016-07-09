@@ -44,6 +44,7 @@ class Ui_labelWindow(object):
 			self.labelReadHotend.setText("{:.1f} C".format(sensors.adc3_temp_cur))
 			#update image.jpg, havent write
 			self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
+			
 			'''
 			if(camera_linedetection.write_complete_flag):
 				self.labelPic1.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_auto.jpg"))
@@ -53,7 +54,7 @@ class Ui_labelWindow(object):
 			#myImage = QtGui.QImage(img.data, img.shape[1], img.shape[0], bytePerLine, QImage.Format_RGB888)
 			#self.labelPic4.setPixmap(QtGui.QPixmap.fromImage(myImage))
 			'''
-			time.sleep(1) #update rate is set to x seconds
+			time.sleep(0.25) #update rate is set to x seconds
 	
 	def function_Exit(self):
 		print("Exiting...type2\n\n\n")
@@ -114,24 +115,37 @@ class Ui_labelWindow(object):
 		buzzer.beep_scroll(self.buzzerpin)
 		
 	def function_cameraedgesigma(self):
-		buf1 = self.spinEdgesigma.value()
-		print(buf1)
+		buf = self.spinEdgesigma.value()/100
+		camera_linedetection.edgesigma = buf
+		print(camera_linedetection.edgesigma)
 		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_line_length_gap(self):
 		buf1 = self.spinLinegap.value()
 		buf2 = self.spinLinelength.value()
-		print(buf1)
-		print(buf2)
+		camera_linedetection.LineGap = buf1
+		camera_linedetection.LineLength = buf2
+		print(camera_linedetection.LineGap)
+		print(camera_linedetection.LineLength)
 		buzzer.beep_scroll(self.buzzerpin)
 		
 	def turn_on_selected_LED(self):
-		grovepi.ledCircleintensity(self.ledcirclepin, self.spinCameralight.value()) #intensity is 0-255
+		grovepi.ledCircle_init(self.ledcirclepin)
+		time.sleep(0.2)
+		grovepi.ledCircle_on(self.ledcirclepin) #intensity is 0-255
 		time.sleep(0.1)
 	
 	def function_cameralight(self):
-		grovepi.ledCircleintensity(self.ledcirclepin, self.spinCameralight.value())
-		#time.sleep(0.075)
+		
+		buf = int(self.spinCameralight.value()) + 150
+		if(buf == 150):
+			grovepi.ledCircle_init(self.ledcirclepin)
+			time.sleep(0.2)
+			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
+			time.sleep(0.1)
+		else:
+			grovepi.ledCircleintensity(self.ledcirclepin, buf)
+			time.sleep(0.1)
 		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_scrollFilament(self):
@@ -641,9 +655,9 @@ class Ui_labelWindow(object):
 		font.setPointSize(22)
 		self.spinCameralight.setFont(font)
 		self.spinCameralight.setMinimum(0)
-		self.spinCameralight.setMaximum(250)
+		self.spinCameralight.setMaximum(100)
 		self.spinCameralight.setSingleStep(10)
-		self.spinCameralight.setProperty("value", 120)
+		self.spinCameralight.setProperty("value", 100)
 		self.spinCameralight.setObjectName("spinCameralight")
 		self.labelCameralight = QtWidgets.QLabel(self.boxCameracontol)
 		self.labelCameralight.setGeometry(QtCore.QRect(10, 20, 81, 81))
@@ -682,8 +696,8 @@ class Ui_labelWindow(object):
 		self.spinEdgesigma.setFont(font)
 		self.spinEdgesigma.setMinimum(0.0)
 		self.spinEdgesigma.setMaximum(100.0)
-		self.spinEdgesigma.setSingleStep(0.5)
-		self.spinEdgesigma.setProperty("value", 33.0)
+		self.spinEdgesigma.setSingleStep(1)
+		self.spinEdgesigma.setProperty("value", 33)
 		self.spinEdgesigma.setObjectName("spinEdgesigma")
 		self.btnCamera = QtWidgets.QPushButton(self.boxCameracontol)
 		self.btnCamera.setGeometry(QtCore.QRect(20, 500, 91, 81))
@@ -699,7 +713,7 @@ class Ui_labelWindow(object):
 		font.setPointSize(22)
 		self.spinLinelength.setFont(font)
 		self.spinLinelength.setMaximum(1000)
-		self.spinLinelength.setSingleStep(1)
+		self.spinLinelength.setSingleStep(5)
 		self.spinLinelength.setProperty("value", 500)
 		self.spinLinelength.setObjectName("spinLinelength")
 		self.spinLinegap = QtWidgets.QSpinBox(self.boxCameracontol)
@@ -708,7 +722,7 @@ class Ui_labelWindow(object):
 		font.setPointSize(22)
 		self.spinLinegap.setFont(font)
 		self.spinLinegap.setMaximum(1000)
-		self.spinLinegap.setSingleStep(1)
+		self.spinLinegap.setSingleStep(5)
 		self.spinLinegap.setProperty("value", 300)
 		self.spinLinegap.setObjectName("spinLinegap")
 		self.labelLinegap = QtWidgets.QLabel(self.boxCameracontol)
