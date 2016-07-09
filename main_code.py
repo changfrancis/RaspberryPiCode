@@ -15,7 +15,7 @@
 #flash using firmware_update_francis_custom.sh
 
 #GUI Compile command
-#pyuic5 -x mainwindow.ui -o mainwindow.py
+#pyuic5 -x mainwindow.ui -o mainwindow.py --don't use this
 #pyuic5 -x mainwindow_debug.ui -o mainwindow_debug.py
 
 import datetime, time, sys, thread, threading, signal, atexit, serial
@@ -38,11 +38,13 @@ from herkulex import servo
 import mainwindow
 import camera_linedetection
 import buzzer
+import cv2
 
 # Exit handlers
 def exitProgram():
 	print("Exiting...type1\n\n\n")
 	herkulex.alive = 0
+	camera_linedetection.alive = 0
 	stepper_output.alive = 0
 	coldblock_output.alive = 0
 	hotend_output.alive = 0
@@ -83,6 +85,7 @@ def Read_Temp_Humid():
 if __name__ == "__main__": 
 	try:
 		print(sys.version)
+		print "OpenCV Version:", cv2.__version__
 		#Pin setting
 		peltierpin1 = 21 #AC
 		peltierpin2 = 20 #Cold Block
@@ -138,7 +141,7 @@ if __name__ == "__main__":
 		
 		#Starting Individual Thread
 		thread.start_new_thread(sensors.read_sensors, ("SensorsThread",)) #start sensor thread
-		#thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
+		thread.start_new_thread(camera_linedetection.run, ("CameraThread",)) #start camera thread
 	
 		aircon = threading.Thread(target=aircon_output.run, args = (peltierpin1,peltier1,peltierfanpin1))
 		aircon.daemon = True
@@ -185,7 +188,6 @@ if __name__ == "__main__":
 	labelWindow = QtWidgets.QMainWindow()
 	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin, ledcirclepin)
 	ui.setupUi(labelWindow)
-	ui.updateSetpoint_all_threads()
 	labelWindow.show()
 	sys.exit(app.exec_())
 	

@@ -1,80 +1,86 @@
+from PyQt5 import QtCore, QtGui, QtWidgets
+import picamera 
+import picamera.array
+import io
 import cv2
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 import time
-import numpy as np
+import numpy
 from time import sleep
+import matplotlib.pyplot as plt
+import math
+import time
+import grovepi
+import PIL
 
-imgPath01 = 'image.jpg'
-imgPath02 = 'image.jpg'
-imgPath03 = 'image.jpg'
-imgPath04 = 'image.jpg'
-CValue1 = 0
-CValue2 = 0
-CValue3 = 0
-CValue4 = 0
-CValue5 = 0
-CValue6 = 0
-CValue7 = 0
-CValue8 = 0
-CValue9 = 0
-imageWidth = 210
-imageHeight = 400
-cur_image = 0
-write_complete_flag = 0
+#Enable Variables
+alive = 1
+x_resolution = 1088
+y_resolution = 1920
+x_crop1 = 282
+x_crop2 = 619
+y_crop1 = 360
+y_crop2 = 1920
+imgPath01 = 0
 
-def auto_canny(image, sigma=0.33):
+def auto_canny(image, sigma=0.25):
 	# compute the median of the single channel pixel intensities
-	v = np.median(image)
+	v = numpy.median(image)
  
 	# apply automatic Canny edge detection using the computed median
-	lower = int(max(150, (1.0 - sigma) * v))
-	upper = int(min(300, (1.0 + sigma) * v))
+	lower = int(max(0, (1.0 - sigma) * v))
+	upper = int(min(255, (1.0 + sigma) * v))
 	edged = cv2.Canny(image, lower, upper)
 	# return the edged image
 	return edged
 
-def run(camera):
-	global cur_image, CValue1, CValue2, CValue3, CValue4, CValue5, CValue6, CValue7, CValue8, CValue9, imageWidth, imageHeight, write_complete_flag    
-	print "OpenCV Version:", cv2.__version__
-	print(camera + " ... Started")
-	camera = PiCamera()
-	camera.resolution =  (imageWidth, imageHeight)
-	camera.framerate = 8
-	camera.rotation = 90
-	rawCapture = PiRGBArray(camera, size= (imageWidth, imageHeight))
-	time.sleep(1)
-	counter = 1
-	for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-		image = frame.array
-		gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-		gauss = cv2.GaussianBlur(gray,(3,3),0)
-		edges = cv2.Canny(gray,25,75,apertureSize = 3)
-		autoedged = auto_canny(image)
-		#lines = cv2.HoughLinesP(edges,1,math.pi/2,2,None, 30, 1)
+# Create the in-memory stream
+def get_image():
+	stream = io.BytesIO()
+	with picamera.PiCamera() as camera:
+		camera.resolution = (x_resolution, y_resolution)
+		camera.rotation = 90
+		with picamera.array.PiRGBArray(camera) as stream:
+			camera.capture(stream, format='bgr')
+			image = stream.array
+		camera.close()
+	return image
 
-		#cv2.imwrite(cur_image, edges)
-		#print(cur_image)
-		#cur_image = edges
-		#cv2.imwrite("image.jpg", image)
-		
-		#cv2.imshow('Manual', edges)
-		#print(CValue1)
-		
-		# clear the stream in preparation for the next frame
-		rawCapture.truncate(0)
-		counter = counter + 1
-		if(counter % 10 == 0):
-			write_complete_flag = 0
-			#cv2.imwrite("/home/pi/Desktop/MyCode/image_auto.jpg", autoedged)
-			#cv2.imwrite("/home/pi/Desktop/MyCode/image_original.jpg", image)
-			#cv2.imwrite("/home/pi/Desktop/MyCode/image_gray.jpg", gray)
-			print("update image")
-			counter = 1
-			write_complete_flag = 1
-		cv2.imshow("Auto", autoedged)
+def run(cameraThread):  
+	global imgPath01
+	print(cameraThread + " ... Started")
+	#cv2.startWindowThread()
+	#cv2.namedWindow("Auto")
+	#cv2.namedWindow("manual")
+	#cv2.moveWindow("Auto",480,0)
+	#cv2.moveWindow("manual",800,0)
+	while(alive):
+		image = get_image()
+		crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
+		#print(type(image))
+		gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
+		gauss = cv2.GaussianBlur(gray,(3,3),0)
+		autoedged = auto_canny(gauss)
+		edged = cv2.Canny(gauss, 25, 75)
+		lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=500, maxLineGap=300)
+		img = edged.copy()
+		if(lines is not None):
+			if(len(lines) > 0):
+				print(len(lines))
+				counter = 0
+				for line in lines:
+					#print(line)
+					#print(line[0])
+					cv2.line(crop_image,(line[0][0],line[0][1]),(line[0][2],line[0][3]),(0,255,0),5)
+					counter = counter + 1
+					if(counter > 10):
+						break
+		outputimage = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		imgPath01 = QtGui.QImage(outputimage.data, outputimage.shape[1], outputimage.shape[0], QtGui.QImage.Format_RGB888)
+		#cv2.imshow("Auto", autoedged)
+		#cv2.imshow("manual", crop_image)
+		#cv2.imwrite("image1.jpg", image)
+		#cv2.waitKey(0)
 		time.sleep(1)
-	#camera.close()
 	
 class LineDetection:
     """LineDetection Controller
