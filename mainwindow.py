@@ -130,15 +130,17 @@ class Ui_labelWindow(object):
 	
 	def function_cameralight(self):
 		
-		buf = int(self.spinCameralight.value()) + 150
-		if(buf == 150):
+		buf = int(self.spinCameralight.value())
+		if(buf > 90):
 			grovepi.ledCircle_init(self.ledcirclepin)
 			time.sleep(0.2)
-			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
-			time.sleep(0.1)
+			grovepi.ledCircle_on(self.ledcirclepin) #intensity is 0-255
+			time.sleep(0.15)
 		else:
-			grovepi.ledCircleintensity(self.ledcirclepin, buf)
-			time.sleep(0.1)
+			#grovepi.ledCircleintensity(self.ledcirclepin, buf)
+			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
+			time.sleep(0.15)
+		print(buf)
 		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_scrollFilament(self):
@@ -649,7 +651,7 @@ class Ui_labelWindow(object):
 		self.spinCameralight.setFont(font)
 		self.spinCameralight.setMinimum(0)
 		self.spinCameralight.setMaximum(100)
-		self.spinCameralight.setSingleStep(10)
+		self.spinCameralight.setSingleStep(100)
 		self.spinCameralight.setProperty("value", 100)
 		self.spinCameralight.setObjectName("spinCameralight")
 		self.labelCameralight = QtWidgets.QLabel(self.boxCameracontol)
