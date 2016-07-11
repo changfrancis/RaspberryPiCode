@@ -32,7 +32,10 @@ def run(dir_pin, step_pin, enable_pin):
 			motor.set_direction(motor_direction)
 			motor.set_on()
 			if(camera_linedetection.cameraPID_enabled):
-				if(cameraPIDsetpoint >= camera_linedetection.OutputDia1):
+				if(camera_linedetection.OutputDia1 < -999):
+					motor.do_step(motor_feedrate)
+					#print("ignore input")
+				elif(cameraPIDsetpoint >= camera_linedetection.OutputDia1):
 					buf = ((cameraPIDsetpoint - camera_linedetection.OutputDia1)/10.0) * cameraP 
 					motor.do_step(motor_feedrate+buf)
 				elif(cameraPIDsetpoint < camera_linedetection.OutputDia1):
@@ -71,8 +74,8 @@ class Stepper:
 		circumference = 2 * PI * 5.5 = 34.5575
 		(360/1.8deg)*16 microstep = 3200 steps per rev
 		'''
-		if(_feedrate <= 0):
-			feedrate = 0
+		if(_feedrate <= 1):
+			feedrate = 1
 		else:
 			feedrate = _feedrate
 		#print(feedrate)

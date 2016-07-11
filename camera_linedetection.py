@@ -83,12 +83,13 @@ def run(cameraThread):
 			'''
 			try:
 				outputimage = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #Setup image
-				outputimage = cv2.rectangle(outputimage, (x_crop1,y_crop1), (x_crop2,y_crop2), (0,0,255), 3) #highlight sensing region
+				outputimage = cv2.rectangle(outputimage, (x_crop1,y_crop1), (x_crop2,y_crop2), (0,255,0), 3) #highlight sensing region
 				#outputimage = cv2.cvtColor(autoedged, cv2.COLOR_GRAY2RGB) #print(autoedged.shape[1]) #print(autoedged.shape[0])
 				if(counter % 2 == 0):
 					outputimage = getFilamentImageReading(outputimage, autoedged, 0, 50, 1)
 					outputimage = getFilamentImageReading(outputimage, autoedged, 400, 425, 2)
 					outputimage = getFilamentImageReading(outputimage, autoedged, 800, 825, 3)
+					outputimage = cv2.putText(outputimage, "Sensing Zone", (x_crop1,y_crop1-50), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0,255,0)) #put text
 				imgPath01 = QtGui.QImage(outputimage.data, outputimage.shape[1], outputimage.shape[0], QtGui.QImage.Format_RGB888)
 				#cv2.imshow("Auto", autoedged)
 				#cv2.imshow("manual", crop_image)
@@ -97,9 +98,9 @@ def run(cameraThread):
 			except Exception, e:
 				print(str(e))
 			counter = counter + 1
-			if(counter >= 50):
+			if(counter >= 100):
 				counter = 0
-			time.sleep(0.33)
+			time.sleep(0.25)
 		else:
 			time.sleep(0.5)
 	
