@@ -126,12 +126,12 @@ SERPORT = None
 alive = 1
 servo_enabled = 1
 filament_dia = 1.75
+servo1_offset = 61
+servo2_offset = -36
+servo3_offset = -65
 
 def run(servo1, servo2, servo3):
-	global servo_enabled
-	servo1_offset = 0
-	servo2_offset = 0
-	servo3_offset = 0
+	global servo_enabled, 	servo1_offset, servo2_offset, servo3_offset
 	print("Herkulex Servo Thread ... Started")
 	next_call = time.time()
 	clear_errors()
@@ -146,11 +146,11 @@ def run(servo1, servo2, servo3):
 			servomove = ((filament_dia - 1.75) / 0.01) * 3.0
 			#print(servomove)
 			servo1.torque_on()
-			servo1.set_servo_angle(servo1_offset+servomove, 150, 0x00) #goaltime is 1 to 255
+			servo1.set_servo_angle(servo1_offset+servomove, 150, 0x00) 
 			servo2.torque_on()
-			servo2.set_servo_angle(servo2_offset+servomove, 150, 0x00) #goaltime is 1 to 255
+			servo2.set_servo_angle(servo2_offset+servomove, 150, 0x00) 
 			servo3.torque_on()
-			servo3.set_servo_angle(servo3_offset+servomove, 100, 0x00) #goaltime is 1 to 255
+			servo3.set_servo_angle(servo3_offset+servomove, 150, 0x00)
 			time.sleep(1)
 		else:
 			clear_errors()

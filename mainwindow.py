@@ -42,19 +42,12 @@ class Ui_labelWindow(object):
 			self.labelReadAircon.setText("{:.1f} C".format(sensors.adc1_temp_cur))
 			self.labelReadColdblock.setText("{:.1f} C".format(sensors.adc2_temp_cur))
 			self.labelReadHotend.setText("{:.1f} C".format(sensors.adc3_temp_cur))
-			#update image.jpg, havent write
-			self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
-			
-			'''
-			if(camera_linedetection.write_complete_flag):
-				self.labelPic1.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_auto.jpg"))
-				self.labelPic2.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_original.jpg"))
-				self.labelPic3.setPixmap(QtGui.QPixmap("/home/pi/Desktop/MyCode/image_gray.jpg"))	
-			#img = camera_linedetection.cur_image
-			#myImage = QtGui.QImage(img.data, img.shape[1], img.shape[0], bytePerLine, QImage.Format_RGB888)
-			#self.labelPic4.setPixmap(QtGui.QPixmap.fromImage(myImage))
-			'''
-			time.sleep(0.25) #update rate is set to x seconds
+			#update image
+			if(self.cameraStart):
+				self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
+			else:
+				self.labelCameraview.setPixmap(QtGui.QPixmap("../../../../../"))
+			time.sleep(0.30) #update rate is set to x seconds
 	
 	def function_Exit(self):
 		print("Exiting...type2\n\n\n")
@@ -81,13 +74,13 @@ class Ui_labelWindow(object):
 			#print("on")
 			self.btnCamera.setStyleSheet("background-color: rgb(255,0,0);") #b,g,r format
 			self.btnCamera.setText("Camera Off")
-			#camera_linedetection.camera_enabled = 1
+			camera_linedetection.camera_enabled = 1
 		elif(self.cameraStart == 1):
 			self.cameraStart = 0
 			#print("off")
 			self.btnCamera.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnCamera.setText("Camera On")
-			#camera_linedetection.camera_enabled = 0
+			camera_linedetection.camera_enabled = 0
 		buzzer.beep_click(self.buzzerpin)
 		
 	def function_cameraPID(self):
