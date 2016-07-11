@@ -45,6 +45,9 @@ class Ui_labelWindow(object):
 			#update image
 			if(self.cameraStart):
 				self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
+				self.lcdOutputDia1.setProperty("value", camera_linedetection.OutputDia1)
+				self.lcdOutputDia2.setProperty("value", camera_linedetection.OutputDia2)
+				self.lcdOutputDia3.setProperty("value", camera_linedetection.OutputDia3)
 			else:
 				self.labelCameraview.setPixmap(QtGui.QPixmap("../../../../../"))
 			time.sleep(0.30) #update rate is set to x seconds
@@ -65,7 +68,7 @@ class Ui_labelWindow(object):
 		sensors.adc1_sensor_enabled = 0 
 		sensors.adc2_sensor_enabled = 0 
 		sensors.adc3_sensor_enabled = 0 
-		time.sleep(1.5)
+		time.sleep(1.0)
 		sys.exit()
 		
 	def function_cameraStart(self):
@@ -75,42 +78,66 @@ class Ui_labelWindow(object):
 			self.btnCamera.setStyleSheet("background-color: rgb(255,0,0);") #b,g,r format
 			self.btnCamera.setText("Camera Off")
 			camera_linedetection.camera_enabled = 1
+			#turn lights on
+			grovepi.ledCircle_init(self.ledcirclepin)
+			time.sleep(0.2)
+			grovepi.ledCircle_on(self.ledcirclepin) #intensity is 0-255
+			time.sleep(0.15)
 		elif(self.cameraStart == 1):
 			self.cameraStart = 0
 			#print("off")
 			self.btnCamera.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnCamera.setText("Camera On")
 			camera_linedetection.camera_enabled = 0
+			#turn lights off
+			#grovepi.ledCircleintensity(self.ledcirclepin, buf)
+			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
+			time.sleep(0.15)
 		buzzer.beep_click(self.buzzerpin)
 		
 	def function_cameraPID(self):
-		if(self.CameraPID == 0):
+		if(self.CameraPID == 0 and stepper_output.motor_enabled and camera_linedetection.camera_enabled):
 			self.CameraPID = 1
 			#print("on")
 			self.btnCameraPID.setStyleSheet("background-color: rgb(255,0,0);") #b,g,r format
 			self.btnCameraPID.setText("PID Disable")
-			#camera_linedetection.cameraPID_enabled = 1
+			stepper_output.cameraP = self.spinCameraP.value()
+			stepper_output.cameraI = self.spinCameraI.value()
+			stepper_output.cameraD = self.spinCameraD.value()
+			stepper_output.cameraPIDsetpoint = self.spinTargetdia.value()
+			camera_linedetection.cameraPID_enabled = 1
 		elif(self.CameraPID == 1):
 			self.CameraPID = 0
 			#print("off")
 			self.btnCameraPID.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnCameraPID.setText("PID Enable")
-			#camera_linedetection.cameraPID_enabled = 0
+			camera_linedetection.cameraPID_enabled = 0
+		else:
+			print("Check - Stepper not started ?")
 		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_cameraPIDValue(self):
 		buf1 = self.spinCameraP.value()
 		buf2 = self.spinCameraI.value()
 		buf3 = self.spinCameraD.value()
-		print(buf1)
-		print(buf2)
-		print(buf3)
+		stepper_output.cameraP = buf1
+		stepper_output.cameraI = buf2
+		stepper_output.cameraD = buf3
+		#print(buf1)
+		#print(buf2)
+		#print(buf3)
 		buzzer.beep_scroll(self.buzzerpin)
+		
+	def function_nozzledia(self):
+		buf = self.spinTargetdia.value()
+		#print(buf)
+		stepper_output.cameraPIDsetpoint = buf
+		buzzer.beep_scroll(self.buzzerpin)	
 		
 	def function_cameraedgesigma(self):
 		buf = self.spinEdgesigma.value()/100
 		camera_linedetection.edgesigma = buf
-		print(camera_linedetection.edgesigma)
+		#print(camera_linedetection.edgesigma)
 		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_line_length_gap(self):
@@ -118,8 +145,8 @@ class Ui_labelWindow(object):
 		buf2 = self.spinLinelength.value()
 		camera_linedetection.LineGap = buf1
 		camera_linedetection.LineLength = buf2
-		print(camera_linedetection.LineGap)
-		print(camera_linedetection.LineLength)
+		#print(camera_linedetection.LineGap)
+		#print(camera_linedetection.LineLength)
 		buzzer.beep_scroll(self.buzzerpin)
 		
 	def turn_on_selected_LED(self):
@@ -127,21 +154,6 @@ class Ui_labelWindow(object):
 		time.sleep(0.2)
 		grovepi.ledCircle_on(self.ledcirclepin) #intensity is 0-255
 		time.sleep(0.1)
-	
-	def function_cameralight(self):
-		
-		buf = int(self.spinCameralight.value())
-		if(buf > 90):
-			grovepi.ledCircle_init(self.ledcirclepin)
-			time.sleep(0.2)
-			grovepi.ledCircle_on(self.ledcirclepin) #intensity is 0-255
-			time.sleep(0.15)
-		else:
-			#grovepi.ledCircleintensity(self.ledcirclepin, buf)
-			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
-			time.sleep(0.15)
-		print(buf)
-		buzzer.beep_scroll(self.buzzerpin)
 	
 	def function_scrollFilament(self):
 		buf = self.scrollFilament.value()/100.0
@@ -253,9 +265,9 @@ class Ui_labelWindow(object):
 			print("Successful = Power down system")	
 			buzzer.beep(self.buzzerpin,2)
 		except Exception, e:
-			print("Failed = Pls manual power down")
-			print("Failed = Pls manual power down")	
-			print("Failed = Pls manual power down")
+			print("--- Failed = Pls manual power down ---\n")
+			print("--- Failed = Pls manual power down ---\n")	
+			print("--- Failed = Pls manual power down ---\n")
 			buzzer.beep_fail(self.buzzerpin)		
 			print(str(e))
 
@@ -360,7 +372,7 @@ class Ui_labelWindow(object):
 		self.lcdFeedrate.setSmallDecimalPoint(False)
 		self.lcdFeedrate.setDigitCount(5)
 		self.lcdFeedrate.setSegmentStyle(QtWidgets.QLCDNumber.Filled)
-		self.lcdFeedrate.setProperty("value", 10.0)
+		self.lcdFeedrate.setProperty("value", 5.0)
 		self.lcdFeedrate.setObjectName("lcdFeedrate")
 		self.lcdFilament = QtWidgets.QLCDNumber(self.boxSetTarget)
 		self.lcdFilament.setGeometry(QtCore.QRect(90, 20, 120, 100))
@@ -414,10 +426,10 @@ class Ui_labelWindow(object):
 		self.scrollFeedrate.setGeometry(QtCore.QRect(220, 460, 40, 100))
 		self.scrollFeedrate.setAutoFillBackground(False)
 		self.scrollFeedrate.setMinimum(1)
-		self.scrollFeedrate.setMaximum(500)
+		self.scrollFeedrate.setMaximum(200)
 		self.scrollFeedrate.setPageStep(1)
-		self.scrollFeedrate.setProperty("value", 10)
-		self.scrollFeedrate.setSliderPosition(10)
+		self.scrollFeedrate.setProperty("value", 5)
+		self.scrollFeedrate.setSliderPosition(5)
 		self.scrollFeedrate.setOrientation(QtCore.Qt.Vertical)
 		self.scrollFeedrate.setInvertedAppearance(False)
 		self.scrollFeedrate.setInvertedControls(True)
@@ -586,7 +598,7 @@ class Ui_labelWindow(object):
 		self.lcdOutputDia1.setSmallDecimalPoint(False)
 		self.lcdOutputDia1.setDigitCount(5)
 		self.lcdOutputDia1.setSegmentStyle(QtWidgets.QLCDNumber.Filled)
-		self.lcdOutputDia1.setProperty("value", 0.5)
+		self.lcdOutputDia1.setProperty("value", 12.3)
 		self.lcdOutputDia1.setObjectName("lcdOutputDia1")
 		self.labelOutputDia2 = QtWidgets.QLabel(self.boxOutputfilament)
 		self.labelOutputDia2.setGeometry(QtCore.QRect(11, 110, 80, 50))
@@ -608,7 +620,7 @@ class Ui_labelWindow(object):
 		self.lcdOutputDia2.setSmallDecimalPoint(False)
 		self.lcdOutputDia2.setDigitCount(5)
 		self.lcdOutputDia2.setSegmentStyle(QtWidgets.QLCDNumber.Filled)
-		self.lcdOutputDia2.setProperty("value", 0.5)
+		self.lcdOutputDia2.setProperty("value", 12.3)
 		self.lcdOutputDia2.setObjectName("lcdOutputDia2")
 		self.lcdOutputDia3 = QtWidgets.QLCDNumber(self.boxOutputfilament)
 		self.lcdOutputDia3.setGeometry(QtCore.QRect(99, 180, 121, 71))
@@ -620,7 +632,7 @@ class Ui_labelWindow(object):
 		self.lcdOutputDia3.setSmallDecimalPoint(False)
 		self.lcdOutputDia3.setDigitCount(5)
 		self.lcdOutputDia3.setSegmentStyle(QtWidgets.QLCDNumber.Filled)
-		self.lcdOutputDia3.setProperty("value", 0.5)
+		self.lcdOutputDia3.setProperty("value", 12.3)
 		self.lcdOutputDia3.setObjectName("lcdOutputDia3")
 		self.labelOutputDia3 = QtWidgets.QLabel(self.boxOutputfilament)
 		self.labelOutputDia3.setGeometry(QtCore.QRect(10, 190, 80, 50))
@@ -644,16 +656,16 @@ class Ui_labelWindow(object):
 		self.boxCameracontol = QtWidgets.QGroupBox(self.CameraTab)
 		self.boxCameracontol.setGeometry(QtCore.QRect(250, 0, 221, 691))
 		self.boxCameracontol.setObjectName("boxCameracontol")
-		self.spinCameralight = QtWidgets.QSpinBox(self.boxCameracontol)
-		self.spinCameralight.setGeometry(QtCore.QRect(100, 20, 111, 81))
+		self.spinTargetdia = QtWidgets.QSpinBox(self.boxCameracontol)
+		self.spinTargetdia.setGeometry(QtCore.QRect(100, 20, 111, 81))
 		font = QtGui.QFont()
 		font.setPointSize(22)
-		self.spinCameralight.setFont(font)
-		self.spinCameralight.setMinimum(0)
-		self.spinCameralight.setMaximum(100)
-		self.spinCameralight.setSingleStep(100)
-		self.spinCameralight.setProperty("value", 100)
-		self.spinCameralight.setObjectName("spinCameralight")
+		self.spinTargetdia.setFont(font)
+		self.spinTargetdia.setMinimum(10)
+		self.spinTargetdia.setMaximum(80)
+		self.spinTargetdia.setSingleStep(1)
+		self.spinTargetdia.setProperty("value", 40)
+		self.spinTargetdia.setObjectName("spinTargetdia")
 		self.labelCameralight = QtWidgets.QLabel(self.boxCameracontol)
 		self.labelCameralight.setGeometry(QtCore.QRect(10, 20, 81, 81))
 		font = QtGui.QFont()
@@ -747,7 +759,7 @@ class Ui_labelWindow(object):
 		self.spinCameraP.setFont(font)
 		self.spinCameraP.setMinimum(0.0)
 		self.spinCameraP.setSingleStep(0.1)
-		self.spinCameraP.setProperty("value", 5.0)
+		self.spinCameraP.setProperty("value", 2.0)
 		self.spinCameraP.setObjectName("spinCameraP")
 		self.labelCameraI = QtWidgets.QLabel(self.boxCameracontol)
 		self.labelCameraI.setGeometry(QtCore.QRect(20, 420, 71, 31))
@@ -850,7 +862,7 @@ class Ui_labelWindow(object):
 		self.lcdFilament.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
 		self.lcdFeedrate.setStyleSheet("background-color: rgb(255,255,255);") #b,g,r format
 		#Camera Control
-		self.spinCameralight.valueChanged.connect(self.function_cameralight)
+		self.spinTargetdia.valueChanged.connect(self.function_nozzledia)
 		self.spinEdgesigma.valueChanged.connect(self.function_cameraedgesigma)
 		self.spinLinelength.valueChanged.connect(self.function_line_length_gap)
 		self.spinLinegap.valueChanged.connect(self.function_line_length_gap)
@@ -897,7 +909,7 @@ class Ui_labelWindow(object):
 		self.labelOutputDia3.setText(_translate("MainWindow", "Reading 3"))
 		self.boxCameraview.setTitle(_translate("MainWindow", "Camera View"))
 		self.boxCameracontol.setTitle(_translate("MainWindow", "Camera Control"))
-		self.labelCameralight.setText(_translate("MainWindow", "Camera Light"))
+		self.labelCameralight.setText(_translate("MainWindow", "Nozzle Dia"))
 		self.labelLinelength.setText(_translate("MainWindow", "Line Length"))
 		self.labelEdgesigma.setText(_translate("MainWindow", "Edge Detection Sigma"))
 		self.btnCamera.setText(_translate("MainWindow", "Camera On"))
