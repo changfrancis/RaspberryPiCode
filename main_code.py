@@ -6,7 +6,7 @@
 # git push
 # hit enter, key-in user and password
 # user: changfrancis@hotmail.com
-# pw: 8524879j
+# pw: ic #
 
 #Arduin Firmware, click tick to compile
 #xxxx.hex file shoud be inside /Tmp/BuildXXXXXXXXXX.tmp
