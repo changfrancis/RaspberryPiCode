@@ -59,6 +59,7 @@ class Ui_labelWindow(object):
 		print("Exiting...type2\n\n\n")
 		buzzer.beep_click(self.buzzerpin)
 		self.function_Estop()
+		grovepi.ledCircle_off(self.ledcirclepin)
 		herkulex.alive = 0
 		camera_linedetection.alive = 0
 		stepper_output.alive = 0
@@ -92,7 +93,7 @@ class Ui_labelWindow(object):
 			self.btnCamera.setStyleSheet("background-color: rgb(0,255,0);")
 			self.btnCamera.setText("Camera On")
 			camera_linedetection.camera_enabled = 0
-			#turn lights off
+			#turn listopghts off
 			#grovepi.ledCircleintensity(self.ledcirclepin, buf)
 			grovepi.ledCircle_off(self.ledcirclepin) #intensity is 0-255
 			time.sleep(0.15)
@@ -254,10 +255,11 @@ class Ui_labelWindow(object):
 			coldblock_output.coldblock_enabled = 0
 			hotend_output.hotend_enabled = 0 
 			stepper_output.motor_enabled = 0
+			camera_linedetection.camera_enabled = 0
 			herkulex.servo_enabled = 0
 			grovepi.analogWrite(self.peltierfanpin1,0)
 			grovepi.analogWrite(self.peltierfanpin2,0)
-			grovepi.ledCircle_off(self.ledcirclepin)
+			#grovepi.ledCircle_off(self.ledcirclepin)
 			time.sleep(0.1)
 			self.peltier1.start(0)
 			self.peltier2.start(0)

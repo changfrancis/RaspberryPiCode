@@ -76,8 +76,7 @@ def exitProgram():
 	GPIO.output(motor_step_pin,0) #set H to disable
 	herkulex.close()
 	#GPIO.cleanup()
-	time.sleep(1.0)
-	sys.exit(0)
+	
 	
 def Read_Temp_Humid():
 	print("Temp: %.2fC\tHumidity:%.2f" %(ht_sensor.getTemperature(),ht_sensor.getHumidity()),"%")
