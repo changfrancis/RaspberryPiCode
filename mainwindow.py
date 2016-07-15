@@ -227,13 +227,13 @@ class Ui_labelWindow(object):
 			self.motorStart = 1
 			#print("on")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(255,0,0);") #b,g,r format
-			self.btnmotorStart.setText("Stop")
+			self.btnmotorStart.setText("Motor Stop")
 			stepper_output.motor_enabled = 1
 		elif(self.motorStart == 1):
 			self.motorStart = 0
 			#print("off")
 			self.btnmotorStart.setStyleSheet("background-color: rgb(0,255,0);")
-			self.btnmotorStart.setText("Start")
+			self.btnmotorStart.setText("Motor Start")
 			stepper_output.motor_enabled = 0
 		buzzer.beep_click(self.buzzerpin)
 		
@@ -500,7 +500,7 @@ class Ui_labelWindow(object):
 		self.btnmotorStart = QtWidgets.QPushButton(self.boxSetTarget)
 		self.btnmotorStart.setGeometry(QtCore.QRect(10, 570, 140, 50))
 		font = QtGui.QFont()
-		font.setPointSize(25)
+		font.setPointSize(18)
 		self.btnmotorStart.setFont(font)
 		self.btnmotorStart.setAutoDefault(False)
 		self.btnmotorStart.setDefault(False)
@@ -897,7 +897,7 @@ class Ui_labelWindow(object):
 		self.labelFeedrate.setText(_translate("labelWindow", "Feedrate"))
 		self.btnONAircon.setText(_translate("labelWindow", "On"))
 		self.btnDirection.setText(_translate("labelWindow", "Forward"))
-		self.btnmotorStart.setText(_translate("labelWindow", "Start"))
+		self.btnmotorStart.setText(_translate("labelWindow", "Motor Start"))
 		self.btnOFFAircon.setText(_translate("labelWindow", "Off"))
 		self.btnONColdblock.setText(_translate("labelWindow", "On"))
 		self.btnOFFColdblock.setText(_translate("labelWindow", "Off"))
