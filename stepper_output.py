@@ -25,26 +25,29 @@ def run(dir_pin, step_pin, enable_pin):
 	print("Motor Thread ... Started")
 	next_call = time.time()
 	while(alive):	
-		while(motor_enabled == 0):
-			time.sleep(0.5)
-			motor.set_off()
-		if(motor_enabled):
-			motor.set_direction(motor_direction)
-			motor.set_on()
-			if(camera_linedetection.cameraPID_enabled):
-				if(camera_linedetection.OutputDia1 < -999):
-					motor.do_step(motor_feedrate)
-					#print("ignore input")
-				elif(cameraPIDsetpoint >= camera_linedetection.OutputDia1):
-					buf = ((cameraPIDsetpoint - camera_linedetection.OutputDia1)/10.0) * cameraP 
-					motor.do_step(motor_feedrate+buf)
-				elif(cameraPIDsetpoint < camera_linedetection.OutputDia1):
-					buf = ((camera_linedetection.OutputDia1 - cameraPIDsetpoint)/10.0) * cameraP 
-					motor.do_step(motor_feedrate-buf)
+		try:
+			while(motor_enabled == 0):
+				time.sleep(0.5)
+				motor.set_off()
+			if(motor_enabled):
+				motor.set_direction(motor_direction)
+				motor.set_on()
+				if(camera_linedetection.cameraPID_enabled):
+					if(camera_linedetection.OutputDia1 < -999):
+						motor.do_step(motor_feedrate)
+						#print("ignore input")
+					elif(cameraPIDsetpoint >= camera_linedetection.OutputDia1):
+						buf = ((cameraPIDsetpoint - camera_linedetection.OutputDia1)/10.0) * cameraP 
+						motor.do_step(motor_feedrate+buf)
+					elif(cameraPIDsetpoint < camera_linedetection.OutputDia1):
+						buf = ((camera_linedetection.OutputDia1 - cameraPIDsetpoint)/10.0) * cameraP 
+						motor.do_step(motor_feedrate-buf)
+					else:
+						motor.do_step(motor_feedrate)
 				else:
 					motor.do_step(motor_feedrate)
-			else:
-				motor.do_step(motor_feedrate)
+		except Exception, e:
+				print(str(e))
 		time.sleep(0.02) #10-20ms
 		
 class Stepper:

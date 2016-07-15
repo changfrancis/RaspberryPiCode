@@ -20,7 +20,7 @@
 
 import datetime, time, sys, thread, threading, signal, atexit, serial
 from PyQt5 import QtCore, QtGui, QtWidgets
-import numpy as np
+import numpy as np5
 from time import sleep
 from scipy.interpolate import spline
 import matplotlib.pyplot as plt
@@ -182,13 +182,17 @@ if __name__ == "__main__":
 		buzzer.beep_fail(buzzerpin)
 		GPIO.cleanup()
 
-	app = QtWidgets.QApplication(sys.argv)
-	app.aboutToQuit.connect(exitProgram)
-	labelWindow = QtWidgets.QMainWindow()
-	ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin, ledcirclepin)
-	ui.setupUi(labelWindow)
-	labelWindow.show()
-	sys.exit(app.exec_())
+	try:
+		app = QtWidgets.QApplication(sys.argv)
+		app.aboutToQuit.connect(exitProgram)
+		labelWindow = QtWidgets.QMainWindow()
+		ui = mainwindow.Ui_labelWindow(peltierfanpin1,peltierfanpin2, peltier1, peltier2, heater, motor_step_pin, motor_dir_pin, motor_enable_pin, buzzerpin, ledcirclepin)
+		ui.setupUi(labelWindow)
+		labelWindow.show()
+		sys.exit(app.exec_())
+	except Exception, e:
+		print(str(e))
+		exitProgram()
 	
 	'''
 	while True:

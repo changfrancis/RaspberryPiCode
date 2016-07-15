@@ -48,7 +48,7 @@ def run(peltierpin1, peltier1, peltierfanpin1):
 					grovepi.analogWrite(peltierfanpin1,125) #half
 			else:
 				peltier1.start(0)
-				if(sensors.adc1_temp_cur <= 25.0): #dew point
+				if(sensors.adc1_temp_cur <= 20.0): #dew point
 					print("Aircon Self Protection : Fan On")
 					grovepi.analogWrite(peltierfanpin1,255) #on
 				else:

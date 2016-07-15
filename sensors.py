@@ -15,14 +15,14 @@ adc1 = grove_i2c_adc.ADC1()
 adc2 = grove_i2c_adc.ADC2()
 adc3 = grove_i2c_adc.ADC3()
 adc1_sensor_enabled = 0 #AC
-adc1_temp_cur = 28
-adc1_temp_old = 28
+adc1_temp_cur = 20
+adc1_temp_old = 20
 adc2_sensor_enabled = 0 #Cold block
-adc2_temp_cur = 28
-adc2_temp_old = 28
+adc2_temp_cur = 20
+adc2_temp_old = 20
 adc3_sensor_enabled = 0 #hot end
-adc3_temp_cur = 28
-adc3_temp_old = 28
+adc3_temp_cur = 20
+adc3_temp_old = 20
 
 #SemiTec 104GT2 Lookuptable
 temperaturetable = [[-50,8],[-40,16],[-30,32],[-20,60],[-10,107],[0,183],[10,299],[20,465],[30,687],[40,962],[50,1276],[60,1606],[70,1926],[80,2216],[90,2466],[100,2671],[110,2835],[120,2963],[130,3062],[140,3138],[150,3196],[160,3241],[170,3276],[180,3302],[190,3323],[200,3340],[210,3353],[220,3363],[230,3372],[240,3378],[250,3384],[260,3388],[270,3392],[280,3395],[290,3398],[300,3400]]

@@ -43,13 +43,16 @@ class Ui_labelWindow(object):
 			self.labelReadColdblock.setText("{:.1f} C".format(sensors.adc2_temp_cur))
 			self.labelReadHotend.setText("{:.1f} C".format(sensors.adc3_temp_cur))
 			#update image
-			if(self.cameraStart):
-				self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
-				self.lcdOutputDia1.setProperty("value", camera_linedetection.OutputDia1)
-				self.lcdOutputDia2.setProperty("value", camera_linedetection.OutputDia2)
-				self.lcdOutputDia3.setProperty("value", camera_linedetection.OutputDia3)
-			else:
-				self.labelCameraview.setPixmap(QtGui.QPixmap("../../../../../"))
+			try:
+				if(self.cameraStart):
+					self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
+					self.lcdOutputDia1.setProperty("value", camera_linedetection.OutputDia1)
+					self.lcdOutputDia2.setProperty("value", camera_linedetection.OutputDia2)
+					self.lcdOutputDia3.setProperty("value", camera_linedetection.OutputDia3)
+				else:
+					self.labelCameraview.setPixmap(QtGui.QPixmap("../../../../../"))
+			except Exception, e:
+				print(str(e))
 			time.sleep(0.30) #update rate is set to x seconds
 	
 	def function_Exit(self):
@@ -470,7 +473,7 @@ class Ui_labelWindow(object):
 		self.scrollFilament = QtWidgets.QScrollBar(self.boxSetTarget)
 		self.scrollFilament.setGeometry(QtCore.QRect(220, 20, 40, 100))
 		self.scrollFilament.setAutoFillBackground(False)
-		self.scrollFilament.setMinimum(130)
+		self.scrollFilament.setMinimum(150)
 		self.scrollFilament.setMaximum(210)
 		self.scrollFilament.setPageStep(1)
 		self.scrollFilament.setSliderPosition(175)
@@ -778,7 +781,7 @@ class Ui_labelWindow(object):
 		self.spinCameraI.setFont(font)
 		self.spinCameraI.setMinimum(0.0)
 		self.spinCameraI.setSingleStep(0.1)
-		self.spinCameraI.setProperty("value", 0.0)
+		self.spinCameraI.setProperty("value", 0.5)
 		self.spinCameraI.setObjectName("spinCameraI")
 		self.spinCameraD = QtWidgets.QDoubleSpinBox(self.boxCameracontol)
 		self.spinCameraD.setGeometry(QtCore.QRect(100, 460, 111, 31))
@@ -787,7 +790,7 @@ class Ui_labelWindow(object):
 		self.spinCameraD.setFont(font)
 		self.spinCameraD.setMinimum(0.0)
 		self.spinCameraD.setSingleStep(0.1)
-		self.spinCameraD.setProperty("value", 0.0)
+		self.spinCameraD.setProperty("value", 1.0)
 		self.spinCameraD.setObjectName("spinCameraD")
 		self.labelCameraD = QtWidgets.QLabel(self.boxCameracontol)
 		self.labelCameraD.setGeometry(QtCore.QRect(20, 460, 71, 31))

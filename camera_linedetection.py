@@ -59,29 +59,29 @@ def run(cameraThread):
 	counter = 0
 	while(alive):
 		if(camera_enabled):
-			image = get_image()
-			crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
-			#print(type(image))
-			gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
-			gauss = cv2.GaussianBlur(gray,(3,3),0)
-			autoedged = auto_canny(gauss, edgesigma)
-			edged = cv2.Canny(gauss, 25, 75)
-			'''
-			lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=LineLength, maxLineGap=LineGap)
-			img = edged.copy()
-			if(lines is not None):
-				if(len(lines) > 0):
-					#print(len(lines))
-					counter = 0
-					for line in lines:
-						#print(line)
-						#print(line[0])
-						cv2.line(crop_image,(line[0][0],line[0][1]),(line[0][2],line[0][3]),(0,255,0),5)
-						counter = counter + 1
-						if(counter > 10):
-							break
-			'''
 			try:
+				image = get_image()
+				crop_image = image[y_crop1:y_crop2, x_crop1:x_crop2] #crop from y h x w
+				#print(type(image))
+				gray = cv2.cvtColor(crop_image,cv2.COLOR_BGR2GRAY)
+				gauss = cv2.GaussianBlur(gray,(3,3),0)
+				autoedged = auto_canny(gauss, edgesigma)
+				edged = cv2.Canny(gauss, 25, 75)
+				'''
+				lines = cv2.HoughLinesP(autoedged, 1, math.pi/2, 2, minLineLength=LineLength, maxLineGap=LineGap)
+				img = edged.copy()
+				if(lines is not None):
+					if(len(lines) > 0):
+						#print(len(lines))
+						counter = 0
+						for line in lines:
+							#print(line)
+							#print(line[0])
+							cv2.line(crop_image,(line[0][0],line[0][1]),(line[0][2],line[0][3]),(0,255,0),5)
+							counter = counter + 1
+							if(counter > 10):
+								break
+				'''
 				outputimage = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #Setup image
 				outputimage = cv2.rectangle(outputimage, (x_crop1,y_crop1), (x_crop2,y_crop2), (0,255,0), 3) #highlight sensing region
 				#outputimage = cv2.cvtColor(autoedged, cv2.COLOR_GRAY2RGB) #print(autoedged.shape[1]) #print(autoedged.shape[0])
@@ -95,12 +95,12 @@ def run(cameraThread):
 				#cv2.imshow("manual", crop_image)
 				#cv2.imwrite("image1.jpg", image)
 				#cv2.waitKey(0)
+				counter = counter + 1
+				if(counter >= 100):
+					counter = 0
 			except Exception, e:
 				print(str(e))
-			counter = counter + 1
-			if(counter >= 100):
-				counter = 0
-			time.sleep(0.25)
+			time.sleep(0.33)
 		else:
 			time.sleep(0.5)
 	
