@@ -19,30 +19,33 @@ def run(heaterpin, heater):
 	print("Hotend PID ... Started")
 	next_call = time.time()
 	while(alive):
-		hotendPID.SetPoint = hotend_setpoint #target temperature in degree
-		hotendPID.update(sensors.adc3_temp_cur) #peltier blue 
-		#print datetime.datetime.now()
-		buf = hotendPID.output * 1.0
-		#print(buf)
-		if(buf > 50):
-			hotend_pwm = 50
-		elif(buf <= 0):
-			hotend_pwm = 0
-		else:
-			hotend_pwm = buf
-		if(sensors.adc3_temp_cur <= -900):
-			print("Error: Run away thermistor - Hotend")
-			hotend_enabled = 0
-			hotendPID.clear()
-			heater.start(0)
-		else:
-			if(hotend_enabled and sensors.adc3_temp_cur <= 160):
-				heater.start(hotend_pwm)
-				print("Hotend Temp = Tgt:%.1fC Cur:%.1fC HeaterOutput = %.1f" %(hotend_setpoint,sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+		try:
+			hotendPID.SetPoint = hotend_setpoint #target temperature in degree
+			hotendPID.update(sensors.adc3_temp_cur) #peltier blue 
+			#print datetime.datetime.now()
+			buf = hotendPID.output * 1.0
+			#print(buf)
+			if(buf >= 50):
+				hotend_pwm = 50
+			elif(buf <= 0):
+				hotend_pwm = 0
 			else:
+				hotend_pwm = buf
+			if(sensors.adc3_temp_cur <= -900):
+				print("Error: Run away thermistor - Hotend")
+				hotend_enabled = 0
+				hotendPID.clear()
 				heater.start(0)
-		next_call = next_call + 1
-		time.sleep(next_call - time.time())
+			else:
+				if(hotend_enabled and sensors.adc3_temp_cur <= 160.0):
+					heater.start(hotend_pwm)
+					print("Hotend Temp = Tgt:%.1fC Cur:%.1fC HeaterOutput = %.1f" %(hotend_setpoint,sensors.adc3_temp_cur,hotend_pwm) + "%"  + " Enable = %d" %(hotend_enabled))
+				else:
+					heater.start(0)
+			next_call = next_call + 1
+			time.sleep(next_call - time.time())
+		except Exception, e:
+			print(str(e))
 	heater.start(0)
 	
 class PIDclass:

@@ -82,7 +82,7 @@ class Stepper:
 		else:
 			feedrate = _feedrate
 		#print(feedrate)
-		delay = float(1.0 / feedrate)/10.0
+		delay = float(1.0 / feedrate)/5.0
 
 		#print(steps_to_turn)
 		#print(delay)

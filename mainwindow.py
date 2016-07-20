@@ -44,6 +44,8 @@ class Ui_labelWindow(object):
 			self.labelReadHotend.setText("{:.1f} C".format(sensors.adc3_temp_cur))
 			#update image
 			try:
+				if(sensors.adc3_temp_cur >= 165.0):
+					buzzer.beep(self.buzzerpin,2)
 				if(self.cameraStart):
 					self.labelCameraview.setPixmap(QtGui.QPixmap(camera_linedetection.imgPath01))
 					self.lcdOutputDia1.setProperty("value", camera_linedetection.OutputDia1)
@@ -59,6 +61,8 @@ class Ui_labelWindow(object):
 		print("Exiting...type2\n\n\n")
 		buzzer.beep_click(self.buzzerpin)
 		self.function_Estop()
+		grovepi.analogWrite(self.peltierfanpin1,0) #aircon, 0-255
+		grovepi.analogWrite(self.peltierfanpin2,0) #coldblock, 0-255
 		grovepi.ledCircle_off(self.ledcirclepin)
 		herkulex.alive = 0
 		camera_linedetection.alive = 0
@@ -431,7 +435,7 @@ class Ui_labelWindow(object):
 		self.scrollFeedrate.setGeometry(QtCore.QRect(220, 460, 40, 100))
 		self.scrollFeedrate.setAutoFillBackground(False)
 		self.scrollFeedrate.setMinimum(1)
-		self.scrollFeedrate.setMaximum(200)
+		self.scrollFeedrate.setMaximum(50)
 		self.scrollFeedrate.setPageStep(1)
 		self.scrollFeedrate.setProperty("value", 5)
 		self.scrollFeedrate.setSliderPosition(5)
@@ -444,7 +448,8 @@ class Ui_labelWindow(object):
 		self.scrollHotend.setAutoFillBackground(False)
 		self.scrollHotend.setMinimum(250)
 		self.scrollHotend.setMaximum(1600)
-		self.scrollHotend.setPageStep(1)
+		self.scrollHotend.setPageStep(10)
+		self.scrollHotend.setSingleStep(10)
 		self.scrollHotend.setSliderPosition(250)
 		self.scrollHotend.setOrientation(QtCore.Qt.Vertical)
 		self.scrollHotend.setInvertedAppearance(False)
@@ -455,7 +460,8 @@ class Ui_labelWindow(object):
 		self.scrollColdblock.setAutoFillBackground(False)
 		self.scrollColdblock.setMinimum(150)
 		self.scrollColdblock.setMaximum(300)
-		self.scrollColdblock.setPageStep(1)
+		self.scrollColdblock.setPageStep(10)
+		self.scrollColdblock.setSingleStep(10)
 		self.scrollColdblock.setSliderPosition(300)
 		self.scrollColdblock.setOrientation(QtCore.Qt.Vertical)
 		self.scrollColdblock.setInvertedAppearance(False)
@@ -466,7 +472,8 @@ class Ui_labelWindow(object):
 		self.scrollAircon.setAutoFillBackground(False)
 		self.scrollAircon.setMinimum(150)
 		self.scrollAircon.setMaximum(300)
-		self.scrollAircon.setPageStep(1)
+		self.scrollAircon.setPageStep(10)
+		self.scrollAircon.setSingleStep(10)
 		self.scrollAircon.setSliderPosition(300)
 		self.scrollAircon.setOrientation(QtCore.Qt.Vertical)
 		self.scrollAircon.setInvertedAppearance(False)
@@ -475,7 +482,7 @@ class Ui_labelWindow(object):
 		self.scrollFilament = QtWidgets.QScrollBar(self.boxSetTarget)
 		self.scrollFilament.setGeometry(QtCore.QRect(220, 20, 40, 100))
 		self.scrollFilament.setAutoFillBackground(False)
-		self.scrollFilament.setMinimum(150)
+		self.scrollFilament.setMinimum(140)
 		self.scrollFilament.setMaximum(210)
 		self.scrollFilament.setPageStep(1)
 		self.scrollFilament.setSliderPosition(175)
